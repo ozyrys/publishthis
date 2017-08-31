@@ -1,0 +1,152 @@
+<?php
+
+/**
+ * @file
+ * Module needed to manage sliders with the Openfed distribution.
+ */
+include_once 'ofed_slider.features.inc';
+require_once 'includes/ofed_slider.misc.inc';
+require_once 'includes/ofed_slider.blocks.inc';
+
+/**
+ * Implements hook_theme_registry_alter().
+ */
+function ofed_slider_theme_registry_alter(&$theme_registry) {
+  $mod_path = drupal_get_path('module', 'ofed_slider');
+  $theme_registry_copy = $theme_registry; // Munge on a copy
+  _theme_process_registry($theme_registry_copy, 'phptemplate', 'theme_engine', 'pow', $mod_path);
+  $theme_registry += array_diff_key($theme_registry_copy, $theme_registry);
+  $hooks = array('node');
+  foreach ($hooks as $h) {
+    _ofed_slider_insert_after_first_element($theme_registry[$h]['theme paths'], $mod_path);
+  }
+}
+
+/**
+ * Helper function for re-ordering arrays (needed by theme_registry_alter).
+ */
+function _ofed_slider_insert_after_first_element(&$a, $element) {
+  if (is_array($a)) {
+    $first_element = array_shift($a);
+    array_unshift($a, $first_element, $element);
+  }
+}
+
+/**
+ * Implements hook_preprocess_node().
+ */
+function ofed_slider_preprocess_node() {
+  drupal_add_css(drupal_get_path('module', 'ofed_slider') . '/assets/styles/ofed_slider.css');
+}
+
+/**
+ * Implements hook_node_update().
+ * @param type $node
+ */
+function ofed_slider_node_insert($node) {
+  if ($node->type == 'ofed_slider') {
+    // Set the language for the related block.
+    db_insert('i18n_block_language')
+    ->fields(array(
+      'module' => 'ofed_slider',
+      'delta' => 'ofed_slider' . $node->nid,
+      'language' => $node->language,
+    ))->execute();
+  }
+}
+
+/**
+ * Implements hook_node_update().
+ * @param type $node
+ */
+function ofed_slider_node_update($node) {
+  if ($node->type == 'ofed_slider' && $node->status  == FALSE) {
+    $delta = 'ofed_slider_' . $node->nid;
+    // Disable block.
+    db_update('block')
+      ->fields(array('status' => 0))
+      ->condition('delta', $delta)
+      ->execute();
+  }
+}
+
+/**
+ * Implements hook_node_update().
+ * @param type $node
+ */
+function ofed_slider_node_delete($node) {
+  if ($node->type == 'ofed_slider') {
+    $delta = 'ofed_slider_' . $node->nid;
+    // Delete block.
+    db_delete('block')
+      ->condition('delta', $delta)
+      ->condition('module', $node->type)
+      ->execute();
+    // Delete block language.
+    db_delete('i18n_block_language')
+      ->condition('delta', $delta)
+      ->condition('module', $node->type)
+      ->execute();
+  }
+}
+
+/**
+ * Implements hook_block_info().
+ */
+function ofed_slider_block_info() {
+  // Initialize.
+  $blocks = array();
+
+  // Get all nodes if type is ofed_slider and published.
+  $result = db_select('node', 'n')
+    ->fields('n', array('nid', 'title', 'language'))
+    ->condition('type', 'ofed_slider')
+    ->condition('status', '1')
+    ->execute();
+
+  if ($result->rowCount() > 0) {
+
+    while ($record = $result->fetchAssoc()) {
+      // Create block.
+      $node = node_load($record['nid']);
+      $blocks['ofed_slider_' . $node->nid] = array(
+        'info' => t('Slider (!language): !title', array('!title' => $record['title'], '!language' => strtoupper($record['language']))),
+        'cache' => DRUPAL_NO_CACHE,
+      );
+    }
+  }
+
+  // Return.
+  return $blocks;
+}
+
+/**
+ * Implements hook_block_view().
+ */
+function ofed_slider_block_view($delta = '') {
+  // Initialize.
+  $block = array();
+
+  if (preg_match('#^ofed_slider#', $delta)) {
+    $nid = str_replace('ofed_slider_', '', $delta);
+    if ($nid && is_numeric($nid)) {
+      // Define the block properties.
+      $block['subject'] = '';
+      $block['content'] = _ofed_slider_block_render_slider($nid);
+    }
+  }
+
+  // Return.
+  return $block;
+}
+
+/**
+ * Implements hook_ofed_user_default_permissions().
+ */
+function ofed_slider_ofed_user_default_permissions() {
+  // Function used by the ofed_rerquirements module. The hook defined in the
+  // required file hereunder is not available otherwise.
+  require_once drupal_get_path('module', 'ofed_slider') . '/ofed_slider.features.user_permission.inc';
+
+  return ofed_slider_user_default_permissions();
+}

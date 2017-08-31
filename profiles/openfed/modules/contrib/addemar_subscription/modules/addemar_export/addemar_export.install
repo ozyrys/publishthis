@@ -1,0 +1,8 @@
+<?php
+
+/**
+ * Implements hook_install().
+ */
+function addemar_export_install() {
+  job_scheduler_rebuild_all();
+}

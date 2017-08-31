@@ -1,0 +1,177 @@
+
+/*		
+		SLIDER	
+*/
+.node-ofed-slider																					{
+	padding: 15px 0;
+}
+/**
+ * Hide the previous and next controls. We are not interested in seeing these
+ * on the slideshow. We have to enable them in order to show the pause control
+ * because of field_slideshow.
+ */
+.view-mode-full.node-ofed-slider .field-slideshow-controls a.prev,
+.view-mode-full.node-ofed-slider .field-slideshow-controls a.next,
+.page-list.node-ofed-slider .field-slideshow-controls a.prev,
+.page-list.node-ofed-slider .field-slideshow-controls a.next {
+  display: none;
+}
+.view-mode-full.node-ofed-slider .field-slideshow-controls a.pause,
+.page-list.node-ofed-slider .field-slideshow-controls a.pause {
+    display: inline-block;
+}
+.view-mode-full.node-ofed-slider .field-slideshow-controls a.play,
+.view-mode-full.node-ofed-slider .field-slideshow-controls a.pause,
+.page-list.node-ofed-slider .field-slideshow-controls a.play,
+.page-list.node-ofed-slider .field-slideshow-controls a.pause {
+    width: 16px;
+    height: 16px;
+    right: 0px;
+    top: -240px;
+    position: absolute;
+}
+.view-mode-full.node-ofed-slider .field-slideshow-controls a,
+.page-list.node-ofed-slider .field-slideshow-controls a {
+  text-indent:-2000em; /* Masquer le texte et le remplancer par des icones de flèches*/
+  width: 26px;
+  height: 48px;
+  z-index: 8000;
+  font-size:0;
+  line-height:0;
+  text-shadow:0;
+}
+.node-ofed-slider .field-slideshow-controls .pause {
+  background: url(../images/slideshow-pause.png) no-repeat 0px 0px;
+}
+.node-ofed-slider .field-slideshow-controls .pause:hover {
+  background: url(../images/slideshow-pause-active.png) no-repeat 0px 0px;
+}
+.node-ofed-slider .field-slideshow-controls a.play {
+  background: url(../images/slideshow-play.png) no-repeat 0px 0px;
+}
+.node-ofed-slider .field-slideshow-controls a.play:hover {
+  background: url(../images/slideshow-play-active.png) no-repeat 0px 0px;
+}
+
+.field-name-field-ofed-slider-image-collec .field-slideshow											{
+	overflow:visible;
+}
+.view-mode-full .field-name-field-ofed-slider-image-collec .field-slideshow-wrapper					{
+	position: relative;
+	border: 1px solid #E1DED7;
+	background: #F4F4F3;
+	height: 240px;
+}
+.view-mode-full  .field-name-field-ofed-slider-image-collec .field-slideshow						{
+	height: 240px !important;
+	width: 100% !important;
+	padding : 0;
+	margin:auto;
+}
+.view-mode-full  .field-name-field-ofed-slider-image-collec .field-slideshow-slide					{
+	padding: 0;
+}
+.field-name-field-ofed-slider-image-collec .field-slideshow-caption									{
+	padding: 0;
+	margin-top: 0px;
+	z-index: 10000;
+	position: relative;
+	color: #32324B;
+	width: 41%;
+	height: auto;
+	background: none;
+	font-size: 1.8em;
+	line-height: 1.5em;
+	font-weight: 600;
+	float:right;
+}
+.block-ofed-slider .view-mode-full .field-slideshow-slide	{
+	text-align:left;
+}
+.field-name-field-ofed-slider-image-collec .field-slideshow-caption	a,								
+.field-name-field-ofed-slider-image-collec .field-slideshow-caption	a:focus,
+.field-name-field-ofed-slider-image-collec .field-slideshow-caption	a:visited,
+.field-name-field-ofed-slider-image-collec .field-slideshow-caption	a:link,
+.field-name-field-ofed-slider-image-collec .field-slideshow-caption	a:active						{
+	color: #32324B;
+	text-decoration: none;
+}
+
+/* 		PAGER  de SLIDER		*/
+.field-name-field-ofed-slider-image-collec .field-slideshow-wrapper									{
+	position:relative;
+}
+.view-mode-full .field-name-field-ofed-slider-image-collec .field-slideshow-controls,
+.page-list .field-name-field-ofed-slider-image-collec .field-slideshow-controls						{
+	position: absolute;
+	bottom: 0;
+	right: 0;
+	margin: 0;
+	width: 10% !important;
+	height: auto !important;
+}
+
+.view-mode-full .field-name-field-ofed-slider-image-collec .field-slideshow-controls a	
+.page-list .field-name-field-ofed-slider-image-collec .field-slideshow-controls a					{
+	display:inline-block;
+	width: 29px;
+	height: 19px;
+	position:absolute;
+	top: 10px;
+	z-index: 9000;
+	font-size:0;
+	line-height:0;
+	text-shadow:0;
+}
+
+.field-name-field-ofed-slider-image-collec .field-slideshow-pager									{
+	position: absolute;
+	bottom: 10px;
+	right: 32.6%;
+}
+.field-name-field-ofed-slider-image-collec .field-slideshow-pager a									{
+	background: #32324B;
+	color: #32324B;
+	margin: 0 3px;
+	text-decoration:none;
+	padding: 2px 9px 3px 9px;
+	font-size: 0;
+	line-height: 0;
+	opacity: 0.5;
+}
+.field-name-field-ofed-slider-image-collec .field-slideshow-pager a.activeSlide,
+.field-name-field-ofed-slider-image-collec .field-slideshow-pager a:hover							{
+	background: #ff7300;
+	opacity: 1;
+}
+
+.field-name-field-ofed-slider-image-collec .field-slideshow-controls .prev							{
+	background: url(../images/arrow-carrousel-left.png) no-repeat 3px 0px;
+	float: none;
+}
+.field-name-field-ofed-slider-image-collec .field-slideshow-controls .prev:hover					{
+	background: url(../images/arrow-carrousel-left-active.png) no-repeat 3px 0px;
+}
+.field-name-field-ofed-slider-image-collec .field-slideshow-controls .next							{
+	background: url(../images/arrow-carrousel-right.png) no-repeat 3px 0px;
+	float: none;
+}
+
+.field-name-field-ofed-slider-image-collec .field-slideshow-controls .next:hover					{
+	background: url(../images/arrow-carrousel-right-active.png) no-repeat 3px 0px;
+}
+@media (max-width: 939px) {
+	.field-name-field-ofed-slider-image-collec .field-slideshow-caption									{
+		font-size: 1.25em;
+		float:none;
+		width: 100%;
+	}
+	.view-mode-full .field-name-field-ofed-slider-image-collec .field-slideshow-wrapper						{
+		min-height: 350px !important;
+	}
+}
+@media (max-width: 479px) {
+	.view-mode-full .field-name-field-ofed-slider-image-collec .field-slideshow-wrapper						{
+		min-height: 300px !important;
+	}
+}

@@ -1,0 +1,175 @@
+<?php
+
+/**
+ * @file
+ * field_collections with files indexation tests.
+ */
+class FieldCollectionAttachmentsTestCase extends DrupalWebTestCase {
+  public static function getInfo() {
+    return array(
+      'name' => 'ApacheSolr Attachments Field Collection tests',
+      'description' => 'Tests the indexation of files uploaded on field collections sets',
+      'group' => 'ApacheSolr Attachments',
+    );
+  }
+
+  function setUp() {
+    parent::setUp(array('apachesolr', 'apachesolr_search', 'search','apachesolr_attachments','field_collection','file'));
+
+    // Let's create the field base and instances.
+    $this->createFields(-1);
+  }
+
+  /**
+   * Retrieves a sample file of the specified type with some data.
+   */
+  protected function getTestFile($type_name, $data = 'dummytext') {
+    // Get a file to upload.
+    $file = current($this->drupalGetTestFiles($type_name, NULL));
+    // Set file content.
+    $file = file_save_data($data, $file->uri, FILE_EXISTS_REPLACE);
+    // Add a filesize property to files as would be read by file_load().
+    $file->filesize = filesize($file->uri);
+
+    return $file;
+  }
+
+  /**
+   * Create a field_collection field with a file field to be used on the
+   * indexation tests.
+   */
+  protected function createFields($cardinality = 1) {
+    $this->field_name = 'field_test_collection';
+    $this->file_field_name = 'field_file';
+    $this->field = array('field_name' => $this->field_name, 'type' => 'field_collection', 'cardinality' => $cardinality);
+    $this->field = field_create_field($this->field);
+    $this->field_id = $this->field['id'];
+
+    $this->instance = array(
+      'field_name' => $this->field_name,
+      'entity_type' => 'node',
+      'bundle' => 'article',
+      'label' => $this->randomName() . '_label',
+      'description' => $this->randomName() . '_description',
+      'weight' => mt_rand(0, 127),
+      'settings' => array(),
+      'widget' => array(
+        'type' => 'hidden',
+        'label' => 'Test',
+        'settings' => array(),
+      ),
+    );
+    $this->instance = field_create_instance($this->instance);
+
+    // Add a field to the collection.
+    $field = array(
+      'field_name' => $this->file_field_name,
+      'type' => 'file',
+      'cardinality' => -1,
+      'settings' => array(),
+    );
+    field_create_field($field);
+    $instance = array(
+      'entity_type' => 'field_collection_item',
+      'field_name' => $this->file_field_name,
+      'bundle' => $this->field_name,
+      'label' => 'Test file field',
+      'widget' => array(
+        'type' => 'file_generic',
+      ),
+    );
+    field_create_instance($instance);
+  }
+
+  /**
+   * Asserts that a file exists physically on disk.
+   */
+  function assertFileExists($file, $message = NULL) {
+    $message = isset($message) ? $message : format_string('File %file exists on the disk.', array('%file' => $file->uri));
+    $this->assertTrue(is_file($file->uri), $message);
+  }
+
+  /**
+   * Test file search and index on field collection entities attached to nodes.
+   */
+  function testFieldCollectionFileIndex() {
+    $langcode = LANGUAGE_NONE;
+    $data = 'dummytext';
+    $file = $this->getTestFile('text', $data);
+
+    // Create and login user.
+    $user = $this->drupalCreateUser(array('access content', 'edit any article content'));
+    $this->drupalLogin($user);
+
+    // Create the node to attach a field collection.
+    $node = $this->drupalCreateNode(array('type' => 'article'));
+    // The path to add a field collection to the created node.
+    $path = 'field-collection/field-test-collection/add/node/' . $node->nid;
+    // Set the file field content and save the node.
+    $edit['files[' . $this->file_field_name . '_' . $langcode . '_0]'] = drupal_realpath($file->uri);
+    $this->drupalPost($path, $edit, t('Save'));
+    $this->assertText(t('The changes have been saved.'), 'Field collection saved.');
+
+    // Load the node with all the fields on it and check the attached field
+    // collection and corresponding file.
+    $node = node_load($node->nid);
+    $field_collection_id = $node->{$this->field_name}[LANGUAGE_NONE][0]['value'];
+    $field_collection = current(entity_load('field_collection_item', array($field_collection_id)));
+    $field_collection_file = (object) $field_collection->{$this->file_field_name}[LANGUAGE_NONE][0];
+    $this->assertFileExists($field_collection_file, 'File correctly saved on field collection creation.');
+    $this->assertEqual(file_get_contents($field_collection_file->uri), $data, 'File content is correct.');
+
+    // Perform the node indexation, which should index the attached field
+    // collections and the corresponding files.
+    $item = new stdClass();
+    $item->entity_id = $node->nid;
+    $item->entity_type = 'node';
+    $item->bundle = $node->type;
+    // Get the default environment.
+    $env_id = apachesolr_default_environment();
+    // Test the default apachesolr_attachments settings.
+    $docs = apachesolr_index_entity_to_documents($item, $env_id);
+    $this->assertEqual(count($docs), 1, 'Indexing only one document from one node');
+    $document = end($docs);
+    $this->assertTrue(strpos($document->content, $data) === FALSE, "File content not found: $data");
+    // To make files on a field collection field indexable, this setting
+    // is required since the files will only be shown on the results if
+    // they are set to be attached to the parent entity. Files belonging to
+    // field collections, set to be index as separated entities, will not be
+    // indexed as part of the created node.
+    variable_set('apachesolr_attachments_entity_bundle_indexing_article', 'parent');
+    // Let's index the node and check the results.
+    $docs = apachesolr_index_entity_to_documents($item, $env_id);
+    $this->assertEqual(count($docs), 1, 'Indexing only one document from one node');
+    $document = end($docs);
+    $this->assertTrue(strpos($document->content, $data) !== FALSE, "Found file content on indexed node: $data");
+
+    // Now we will update the field collection with a new file and check if
+    // the node gets the right content.
+    $path = "field-collection/field-test-collection/$field_collection_id/edit";
+    $data = 'dummytextupdated';
+    // First we need to remove the old value.
+    $this->drupalGet($path);
+    $this->drupalPost(NULL, array(), t('Remove'));
+    $this->drupalPost(NULL, array(), t('Save'));
+    // And now we create and attach a new file as before.
+    $file = $this->getTestFile('text', $data);
+    $edit['files[' . $this->file_field_name . '_' . $langcode . '_0]'] = drupal_realpath($file->uri);
+    $this->drupalPost($path, $edit, t('Save'));
+    $this->assertText(t('The changes have been saved.'), 'Field collection updated.');
+    // Load the node with all the fields on it and check the attached field
+    // collection and corresponding file.
+    $node = node_load($node->nid);
+    $field_collection = current(entity_load('field_collection_item', array($field_collection_id)));
+    $field_collection_file = (object) $field_collection->{$this->file_field_name}[LANGUAGE_NONE][0];
+    $this->assertFileExists($field_collection_file, 'File correctly saved on field collection creation.');
+    $this->assertEqual(file_get_contents($field_collection_file->uri), $data, 'File content is correct.');
+    // Let's index the node and check the results.
+    $docs = apachesolr_index_entity_to_documents($item, $env_id);
+    $this->assertEqual(count($docs), 1, 'Indexing only one document from one node');
+    $document = end($docs);
+    $this->assertTrue(strpos($document->content, $data) !== FALSE, "Found file content on indexed node: $data");
+
+  }
+
+}

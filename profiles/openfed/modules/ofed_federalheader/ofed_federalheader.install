@@ -1,0 +1,22 @@
+<?php
+
+/**
+ * Implements hook_schema().
+ */
+function ofed_federalheader_schema() {
+
+}
+
+/**
+ * Implements hook_install().
+ */
+function ofed_federalheader_install() {
+
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function ofed_federalheader_uninstall() {
+  
+}

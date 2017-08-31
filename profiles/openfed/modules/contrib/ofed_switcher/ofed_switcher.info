@@ -1,0 +1,15 @@
+name = Interface switcher
+description = "Add a block to switch between public website and administration<br />
+               Contains a <strong>block</strong> and an <strong>admin interface</strong>"
+package = openFED
+core = 7.x
+
+dependencies[] = menu
+dependencies[] = redirect
+
+; Information added by Drupal.org packaging script on 2016-04-26
+version = "7.x-1.2"
+core = "7.x"
+project = "ofed_switcher"
+datestamp = "1461686940"
+

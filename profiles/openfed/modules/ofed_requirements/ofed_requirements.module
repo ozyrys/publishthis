@@ -1,0 +1,52 @@
+<?php
+
+/**
+ * @file
+ * Module used make some comformity checks in the database, with the Openfed distribution.
+ */
+
+/**
+ * Implements hook_menu().
+ */
+function ofed_requirements_menu() {
+  $items = array();
+
+  $items['admin/openfed/requirements'] = array(
+    'title' => 'Fedict requirements',
+    'description' => 'Check if the system fulfill the Fedict requirements',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('ofed_requirements_admin_requirements_form'),
+    'access arguments' => array('access requirements check'),
+    'file' => 'includes/ofed_requirements.admin.inc',
+    'type' => MENU_NORMAL_ITEM,
+  );
+  
+  $items['admin/openfed/requirements/reset'] = array(
+    'title' => 'Fedict requirements, reset notes',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('ofed_requirements_admin_requirements_notes_reset_confirm'),
+    'access arguments' => array('access requirements check'),
+    'file' => 'includes/ofed_requirements.admin.inc',
+    'type' => MENU_CALLBACK,
+  );
+  
+  return $items;
+}
+
+/**
+ * Implements hook_permission().
+ */
+function ofed_requirements_permission() {
+  return array(
+    'access requirements check' => array(
+      'title' => t('Access requirements check'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_preprocess_page().
+ */
+function ofed_requirements_preprocess_page() {
+  drupal_add_css(drupal_get_path('module', 'ofed_requirements') . '/assets/styles/ofed_requirements.css');
+}

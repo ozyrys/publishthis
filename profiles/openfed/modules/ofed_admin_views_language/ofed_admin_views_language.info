@@ -1,0 +1,19 @@
+name = Administration Views - Openfed
+description = Makes the Language and Nid filters appear on the admin content management page.
+core = 7.x
+package = OpenFed
+project = openfed
+dependencies[] = admin_views
+dependencies[] = views
+datestamp = 1487863191
+features[ctools][] = views:views_default:3.0
+features[features_api][] = api:2
+features[views_view][] = administration_nodes_language
+features_exclude[dependencies][ctools] = ctools
+
+; Information added by Drupal.org packaging script on 2017-08-17
+version = "7.x-2.11"
+core = "7.x"
+project = "openfed"
+datestamp = "1502965821"
+

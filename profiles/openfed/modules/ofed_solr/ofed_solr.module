@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the ofed_solr feature.
+ */
+
+include_once 'ofed_solr.features.inc';

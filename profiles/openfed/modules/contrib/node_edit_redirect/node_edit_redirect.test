@@ -1,0 +1,135 @@
+<?php
+
+/**
+ * @file
+ * Tests for Node Edit Redirect.
+ */
+class NodeEditRedirectTestCase extends DrupalWebTestCase {
+
+  public static function getInfo() {
+    return array(
+      'name' => 'Node Edit Redirect',
+      'description' => 'Test Node Edit Redirect',
+      'group' => 'Node Edit Redirect'
+    );
+  }
+
+  function setUp() {
+    parent::setUp('locale', 'translation', 'node_edit_redirect');
+
+    // Setup users.
+    $this->admin_user = $this->drupalCreateUser(array('bypass node access', 'administer nodes', 'administer languages', 'administer content types', 'administer blocks', 'access administration pages', 'translate content'));
+    $this->drupalLogin($this->admin_user);
+
+    // Add languages.
+    $this->addLanguage('en');
+    $this->addLanguage('es');
+    $this->addLanguage('it');
+
+    // Set "Basic page" content type to use multilingual support with
+    // translation.
+    $this->drupalGet('admin/structure/types/manage/page');
+    $edit = array();
+    $edit['language_content_type'] = 2;
+    $this->drupalPost('admin/structure/types/manage/page', $edit, t('Save content type'));
+    $this->assertRaw(t('The content type %type has been updated.', array('%type' => 'Basic page')), 'Basic page content type has been updated.');
+
+    // Set up prefix-based language negotiation.
+    $edit = array('language[enabled][locale-url]' => TRUE);
+    $this->drupalPost('admin/config/regional/language/configure', $edit, t('Save settings'));
+    $this->assertRaw(t('Language negotiation configuration saved.'), 'URL language detection enabled.');
+    drupal_static_reset('locale_url_outbound_alter');
+  }
+
+  /**
+   * Test that the redirect works.
+   */
+  function testRedirect() {
+    // Create Basic page in Spanish.
+    $node_title = $this->randomName();
+    $node_body =  $this->randomName();
+    $node = $this->createPage($node_title, $node_body, 'es');
+
+    $this->drupalLogin($this->admin_user);
+    // Visit the Italian page for a Spanish node.
+    $this->drupalGet('it/node/' . $node->nid . '/edit');
+    $this->assertResponse(200);
+    $headers = $this->drupalGetHeaders(TRUE);
+    list(, $status) = explode(' ', $headers [0][':status'], 3);
+    $this->assertEqual($status, 302, 'Expected response code was sent.');
+    $languages = language_list();
+
+    // Assert that we redirected to the Spanish edit page.
+    $this->assertEqual($this->getUrl(), url('node/' . $node->nid . '/edit', array('absolute' => TRUE, 'language' => $languages['es'])));
+    $this->assertNotEqual($this->getUrl(), url('node/' . $node->nid . '/edit', array('absolute' => TRUE, 'language' => $languages['it'])));
+  }
+
+  /**
+   * Installs the specified language, or enables it if it is already installed.
+   *
+   * @param $language_code
+   *   The language code to check.
+   */
+  function addLanguage($language_code) {
+    // Check to make sure that language has not already been installed.
+    $this->drupalGet('admin/config/regional/language');
+
+    if (strpos($this->drupalGetContent(), 'enabled[' . $language_code . ']') === FALSE) {
+      // Doesn't have language installed so add it.
+      $edit = array();
+      $edit['langcode'] = $language_code;
+      $this->drupalPost('admin/config/regional/language/add', $edit, t('Add language'));
+
+      // Make sure we are not using a stale list.
+      drupal_static_reset('language_list');
+      $languages = language_list('language');
+      $this->assertTrue(array_key_exists($language_code, $languages), 'Language was installed successfully.');
+
+      if (array_key_exists($language_code, $languages)) {
+        $this->assertRaw(t('The language %language has been created and can now be used. More information is available on the <a href="@locale-help">help screen</a>.', array('%language' => $languages[$language_code]->name, '@locale-help' => url('admin/help/locale'))), 'Language has been created.');
+      }
+    }
+    elseif ($this->xpath('//input[@type="checkbox" and @name=:name and @checked="checked"]', array(':name' => 'enabled[' . $language_code . ']'))) {
+      // It's installed and enabled. No need to do anything.
+      $this->assertTrue(true, 'Language [' . $language_code . '] already installed and enabled.');
+    }
+    else {
+      // It's installed but not enabled. Enable it.
+      $this->assertTrue(true, 'Language [' . $language_code . '] already installed.');
+      $this->drupalPost(NULL, array('enabled[' . $language_code . ']' => TRUE), t('Save configuration'));
+      $this->assertRaw(t('Configuration saved.'), 'Language successfully enabled.');
+    }
+  }
+
+  /**
+   * Creates a "Basic page" in the specified language.
+   *
+   * @param $title
+   *   The title of a basic page in the specified language.
+   * @param $body
+   *   The body of a basic page in the specified language.
+   * @param $language
+   *   (optional) Language code.
+   *
+   * @return
+   *   A node object.
+   */
+  function createPage($title, $body, $language = NULL) {
+    $edit = array();
+    $langcode = LANGUAGE_NONE;
+    $edit["title"] = $title;
+    $edit["body[$langcode][0][value]"] = $body;
+    if (!empty($language)) {
+      $edit['language'] = $language;
+    }
+    $this->drupalPost('node/add/page', $edit, t('Save'));
+    $this->assertRaw(t('Basic page %title has been created.', array('%title' => $title)), 'Basic page created.');
+
+    // Check to make sure the node was created.
+    $node = $this->drupalGetNodeByTitle($title);
+    $this->assertTrue($node, 'Node found in database.');
+
+    return $node;
+  }
+
+}

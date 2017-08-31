@@ -1,0 +1,46 @@
+name = OpenFed Apache Solr
+description = Install and configure Apache Solr for OpenFed (EXPERIMENTAL)
+core = 7.x
+package = OpenFed
+dependencies[] = apachesolr
+dependencies[] = apachesolr_access
+dependencies[] = apachesolr_attachments
+dependencies[] = apachesolr_autocomplete
+dependencies[] = apachesolr_multilingual
+dependencies[] = apachesolr_search
+dependencies[] = ctools
+dependencies[] = ds_extras
+dependencies[] = facetapi
+dependencies[] = facetapi_i18n
+dependencies[] = features
+dependencies[] = search
+dependencies[] = strongarm
+features[apachesolr_search_page][] = core_search
+features[apachesolr_search_page][] = taxonomy_search
+features[ctools][] = apachesolr_search:apachesolr_search_defaults:3
+features[ctools][] = strongarm:strongarm:1
+features[features_api][] = api:2
+features[user_permission][] = administer facets
+features[user_permission][] = administer search
+features[user_permission][] = search content
+features[user_permission][] = use advanced search
+features[user_permission][] = view search_info on node
+features[user_permission][] = view search_snippet on node
+features[variable][] = apachesolr_attachments_extract_using
+features[variable][] = apachesolr_attachments_tika_jar
+features[variable][] = apachesolr_attachments_tika_path
+features[variable][] = apachesolr_default_environment
+features[variable][] = apachesolr_search_mlt_blocks
+features[variable][] = apachesolr_service_class
+features[variable][] = ds_search_type
+features[variable][] = ds_search_view_mode
+features[variable][] = facetapi:translator_module
+features[variable][] = search_active_modules
+features[variable][] = search_default_module
+
+; Information added by Drupal.org packaging script on 2017-08-17
+version = "7.x-2.11"
+core = "7.x"
+project = "openfed"
+datestamp = "1502965821"
+

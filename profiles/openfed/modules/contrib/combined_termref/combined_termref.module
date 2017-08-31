@@ -1,0 +1,121 @@
+<?php
+
+/**
+ * @file combined_termref.module
+ *
+ * Modifications to the standard term reference field to associate upto three
+ * vocabularies for a field.
+ */
+
+/**
+ * Implements hook_menu().
+ */
+function combined_termref_menu() {
+  // Define another taxonomy autocomplete because the default one of Drupal
+  // does not support a vid as argument anymore, and the views one does not
+  // support multiple vids.
+  $items['admin/views/ajax/autocomplete/taxonomy/multiple'] = array(
+    'page callback' => 'combined_termref_ajax_autocomplete_taxonomy',
+    'theme callback' => 'ajax_base_page_theme',
+    'access callback' => 'user_access',
+    'access arguments' => array('access content'),
+    'type' => MENU_CALLBACK,
+    'file' => 'views/ajax.inc',
+  );
+  return $items;
+}
+
+/**
+ * Implements hook_views_api().
+ */
+function combined_termref_views_api() {
+  return array(
+    'api' => 3,
+    'path' => drupal_get_path('module', 'combined_termref') . '/views',
+  );
+}
+
+/**
+ * Implements hook_field_info_alter().
+ */
+function combined_termref_field_info_alter(&$info) {
+  // We add as many vocabularies as available on the system.
+  $vocabularies = count(taxonomy_get_vocabularies());
+  for ($i = 0; $i < $vocabularies; $i++) {
+    $info['taxonomy_term_reference']['settings']['allowed_values'][] = array(
+      'vocabulary' => '',
+      'parent' => '0',
+    );
+  }
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ *
+ * 'Field settings' tab when editing a field in the UI
+ */
+function combined_termref_form_field_ui_field_settings_form_alter(&$form, &$form_state) {
+  if (isset($form['field']['type']['#value']) && ($form['field']['type']['#value'] == 'taxonomy_term_reference')) {
+    _combined_termref_modify_field_settings_form($form);
+  }
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ *
+ * 'Edit' tab when editing a field in the UI
+ */
+function combined_termref_form_field_ui_field_edit_form_alter(&$form, &$form_state) {
+  if (isset($form['#field']['type']) && ($form['#field']['type'] == 'taxonomy_term_reference')) {
+    _combined_termref_modify_field_settings_form($form);
+  }
+}
+
+/**
+ * Helper function to make the extra vocabulary fields non-required.
+ */
+function _combined_termref_modify_field_settings_form(&$form) {
+  foreach ($form['field']['settings']['allowed_values'] as $delta => $form_item) {
+    // Skip the first vocab and #tree
+    if (!is_numeric($delta) || ($delta == 0)) {
+      continue;
+    }
+    // Make it non-required fields.
+    $form['field']['settings']['allowed_values'][$delta]['vocabulary']['#required'] = FALSE;
+    $form['field']['settings']['allowed_values'][$delta]['vocabulary']['#empty_option'] = t('- None -');
+    $form['field']['settings']['allowed_values'][$delta]['vocabulary']['#empty_value'] = '';
+    $form['field']['settings']['allowed_values'][$delta]['vocabulary']['#description'] = t(
+      'Optionally choose another vocabulary to supply options for this field.
+       If none is selected, the value of the first vocabulary field above will be used.'
+    );
+  }
+  // Add a custom submit handler at the front to be executed first.
+  array_unshift($form['#submit'], '_combined_termref_field_settings_submit');
+}
+
+/**
+ * Submit handler.
+ *
+ * Submit handler to sanitize values of extra vocabulary fields if they are
+ * empty so that taxonomy_autocomplete() and other callback options suppliers
+ * will not error on empty vocabulary values passed.
+ *
+ * @see _combined_termref_modify_field_settings_form()
+ */
+function _combined_termref_field_settings_submit($form, &$form_state) {
+  foreach ($form_state['values']['field']['settings']['allowed_values'] as $delta => $form_item) {
+    // Skip the first vocab.
+    if (!is_numeric($delta) || ($delta == 0)) {
+      continue;
+    }
+    // If a vocabulary field item is empty, copy over the first item's values.
+    if (empty($form_item['vocabulary']) && $delta == 0) {
+      $form_state['values']['field']['settings']['allowed_values'][$delta]['vocabulary'] = $form_state['values']['field']['settings']['allowed_values'][0]['vocabulary'];
+      $form_state['values']['field']['settings']['allowed_values'][$delta]['parent'] = $form_state['values']['field']['settings']['allowed_values'][0]['parent'];
+    }
+    elseif (empty($form_item['vocabulary']) && $delta > 0) {
+      $form_state['values']['field']['settings']['allowed_values'][$delta]['vocabulary'] = '';
+      $form_state['values']['field']['settings']['allowed_values'][$delta]['parent'] = '0';
+    }
+  }
+}

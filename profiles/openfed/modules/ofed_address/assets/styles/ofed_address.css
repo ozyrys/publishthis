@@ -1,0 +1,47 @@
+/*		
+                ADDRESS	
+*/
+.field-name-field-ofed-address-name {
+    font-size: 1.1em;
+    margin: 5px 0;
+    font-weight: 700;
+    color: #ff7300;
+}
+.field-name-field-ofed-address-phone,
+.field-name-field-ofed-address-opening-hours {
+    margin-bottom: 10px;
+}
+.field-name-field-ofed-address-street, 
+.field-name-field-ofed-address-number,
+.field-name-field-ofed-address-bus,
+.field-name-field-ofed-address-bus .label-inline,
+.field-name-field-ofed-address-zip,
+.field-name-field-ofed-address-city,
+.field-name-field-ofed-address-country {
+    font-weight: 600;
+    margin-right: 3px;
+}
+.field-name-field-ofed-address-bus .label-inline {
+    text-transform: lowercase;
+}
+.field-name-field-ofed-address-map {
+    border: 1px solid rgba(0, 0, 0, 0.15);
+    box-shadow: inset 0px 0px 6px rgba(0, 0, 0, 0.1);
+    margin: 10px auto 30px auto;
+    padding: 5px;
+}
+.field-name-field-ofed-address-map iframe {
+    width: 100%;
+}
+.field-name-field-ofed-address-directions {
+    border: 1px solid #E1DED7;
+    background: #F4F4F3;
+    padding: 20px 10px 0px 10px;
+}
+.page-addresses	#maincontent ul.page-list > li {
+    background: none;
+    padding: 10px 0 20px 0;
+    border-bottom: 1px solid #E0E0E0;
+    position: relative;
+    display: block;
+}

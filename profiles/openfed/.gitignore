@@ -1,0 +1,6 @@
+LICENSE.txt
+#libraries/
+.buildpath
+.settings
+.settings/
+.project

@@ -1,0 +1,198 @@
+<?php
+
+/**
+ * @file
+ * Hooks for the Addemar Export module.
+ */
+
+/**
+ * Implements hook_menu().
+ */
+function addemar_export_menu() {
+  $items = array();
+
+  $items['admin/config/services/addemar_export'] = array(
+    'title' => 'Addemar export',
+    'description' => 'Configure Addemar export',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('addemar_export_admin_form'),
+    'access arguments' => array('access addemar_subscription configuration'),
+    'type' => MENU_NORMAL_ITEM,
+  );
+
+  return $items;
+}
+
+/**
+ * Implements hook_cron_job_scheduler_info().
+ *
+ * Do not forget to run job_scheduler_rebuild_all() on any changes here,
+ * see https://drupal.org/comment/8406919#comment-8406919
+ */
+function addemar_export_cron_job_scheduler_info() {
+  $schedulers = array();
+  $schedulers['addemar_export_run_export'] = array(
+    'worker callback' => 'addemar_export_run_export',
+    'jobs' => array(
+      array(
+        'type' => 'addemar_export',
+        // By default, run every Tuesday at 8:30am.
+        'crontab' => variable_get('addemar_export_crontab', '30 8 * * 2'),
+        'periodic' => TRUE,
+      ),
+    ),
+  );
+  return $schedulers;
+}
+
+/**
+ * Exports articles from XML feeds into Addemar.
+ */
+function addemar_export_run_export() {
+  // Get the SOAP client.
+  $wsdl = variable_get('addemar_subscription_soap_wsdl', FALSE);
+  if (!$wsdl) {
+    return;
+  }
+  // Hardcode the API version to 1.3.4 as Addemar has tested the importContent
+  // API calls with this version only.
+  $wsdl = preg_replace('/(.*&version)(=.*)/', '\\1=1.3.4', $wsdl);
+  $s_client = _addemar_subscription_get_soap_client($wsdl);
+  if (!$s_client) {
+    // Exceptions will be caught by scheduler, and the job will be retried
+    // on the next cron run.
+    throw new Exception('Addemar Export error: could not load SOAP client.');
+  }
+
+  // Loop through the available languages.
+  foreach (array('nl_BE', 'fr_BE', 'de_DE', 'en_UK') as $locale) {
+    $success = FALSE;
+    $feed_url = variable_get('addemar_export_' . $locale . '_feed', '');
+    if (empty($feed_url)) {
+      continue;
+    }
+    $result = drupal_http_request($feed_url);
+
+    $xml = new SimpleXMLElement($result->data);
+    $articles = '';
+    if (empty($xml->item)) {
+      // Feed is empty.
+      continue;
+    }
+    foreach ($xml->item as $item) {
+      $articles .= theme('addemar_export_article_item', array(
+        'profile' => (string) $item->profile,
+        'title' => (string) $item->title,
+        'image' => (string) $item->image,
+        'body' => (string) $item->body,
+        'article_url' => (string) $item->article_url,
+        'langcode' => substr($locale, 0, 2),
+      ));
+    }
+
+    $content_xml = theme('addemar_export_xml_import_content', array(
+      'locale' => $locale,
+      'articles' => $articles,
+      'valid_until' => date('Ymd', strtotime(variable_get('addemar_export_valid_until', '+2 days'))),
+    ));
+    $job_id = $s_client->call($content_xml);
+
+    if (is_numeric($job_id)) {
+      $result = $s_client->getScheduledJobStatus($job_id);
+      watchdog('addemar_export', 'Content import #!job_id result: !result', array(
+        '!job_id' => $job_id,
+        '!result' => check_plain($result),
+      ));
+      if (preg_match('/success|scheduled/', $result)) {
+        $success = TRUE;
+      }
+    }
+    if (!$success) {
+      throw new Exception('Addemar Export failed.');
+    }
+  }
+}
+
+/**
+ * Theme hook for one article item, to allow XML to be modified by theme.
+ */
+function theme_addemar_export_article_item($variables) {
+  return '<article type="article" profile="' . check_plain($variables['profile']) . '" >
+  <html>
+    <![CDATA[' . theme('addemar_export_article_html', array(
+      'title' => $variables['title'],
+      'image' => $variables['image'],
+      'body' => $variables['body'],
+      'article_url' => $variables['article_url'],
+      'langcode' => $variables['langcode'],
+    )) . ']]>
+  </html>
+</article>';
+}
+
+/**
+ * Form callback for the settings screen.
+ */
+function addemar_export_admin_form() {
+  $form = array();
+  $form['addemar_export_description'] = array(
+    '#markup' => t('Enter the URLs where the feeds for the content in different languages can be downloaded. Leave empty any unavailable language that you want to skip during the content export.'),
+  );
+  foreach (array('nl_BE', 'fr_BE', 'de_DE', 'en_UK') as $locale) {
+    $form['addemar_export_' . $locale . '_feed'] = array(
+      '#type' => 'textfield',
+      '#title' => t('@locale feed', array('@locale' => $locale)),
+      '#default_value' => variable_get('addemar_export_' . $locale . '_feed', ''),
+    );
+  }
+  $form['addemar_export_crontab'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Crontab value'),
+    '#default_value' => variable_get('addemar_export_crontab', '00 01 * * 2'),
+  );
+  $form['addemar_export_valid_until'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Validity of exports'),
+    '#description' => t('Enter a strtotime() string indicating how long the content in the export is valid for. Example: <em>+1 month</em>.'),
+    '#default_value' => variable_get('addemar_export_valid_until', '+3 days'),
+  );
+
+  return system_settings_form($form);
+}
+
+/**
+ * Implements hook_theme().
+ */
+function addemar_export_theme($existing, $type, $theme, $path) {
+  $theme = array();
+  $theme['addemar_export_article_html'] = array(
+    'variables' => array(
+      'title' => NULL,
+      'image' => NULL,
+      'body' => NULL,
+      'article_url' => NULL,
+    ),
+    'template' => 'addemar-export-article-html',
+    'path' => drupal_get_path('module', 'addemar_export') . '/templates',
+  );
+  $theme['addemar_export_xml_import_content'] = array(
+    'variables' => array(
+      'locale' => NULL,
+      'articles' => NULL,
+      'valid_until' => NULL,
+    ),
+    'template' => 'addemar-export-xml-import-content',
+    'path' => drupal_get_path('module', 'addemar_export') . '/templates',
+  );
+  $theme['addemar_export_article_item'] = array(
+    'variables' => array(
+      'profile' => NULL,
+      'title' => NULL,
+      'image' => NULL,
+      'body' => NULL,
+      'article_url' => NULL,
+      'langcode' => NULL,
+    ),
+  );
+  return $theme;
+}

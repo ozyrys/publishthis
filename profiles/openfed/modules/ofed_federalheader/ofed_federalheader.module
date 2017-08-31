@@ -1,0 +1,44 @@
+<?php
+
+/**
+ * @file
+ * Module needed to add the federal header with the Openfed distribution.
+ */
+
+require_once 'includes/ofed_federalheader.blocks.inc';
+
+/**
+ * Implements hook_theme().
+ */
+function ofed_federalheader_theme($existing, $type, $theme, $path) {
+  return array(
+    'ofed_federalheader_block' => array(
+      'variables' => NULL,
+      'template' => 'templates/blocks/ofed_federalheader_block_content',
+    ),
+  );
+}
+
+/**
+ * Implements hook_theme_registry_alter().
+ */
+function ofed_federalheader_theme_registry_alter(&$theme_registry) {
+  $mod_path = drupal_get_path('module', 'ofed_federalheader');
+  $theme_registry_copy = $theme_registry; // Munge on a copy
+  _theme_process_registry($theme_registry_copy, 'phptemplate', 'theme_engine', 'pow', $mod_path);
+  $theme_registry += array_diff_key($theme_registry_copy, $theme_registry);
+  $hooks = array('node');
+  foreach ($hooks as $h) {
+    _ofed_federalheader_insert_after_first_element($theme_registry[$h]['theme paths'], $mod_path);
+  }
+}
+
+/**
+ * Helper function for re-ordering arrays (needed by theme_registry_alter).
+ */
+function _ofed_federalheader_insert_after_first_element(&$a, $element) {
+  if (is_array($a)) {
+    $first_element = array_shift($a);
+    array_unshift($a, $first_element, $element);
+  }
+}

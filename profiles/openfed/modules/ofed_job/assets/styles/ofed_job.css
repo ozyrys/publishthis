@@ -1,0 +1,89 @@
+/*
+    JOB
+*/
+
+.field-name-field-ofed-job-reference,
+.field-name-field-ofed-job-sector,
+.field-name-field-ofed-job-languages,
+.field-name-field-ofed-job-experience,
+.field-name-field-ofed-job-study-level             {
+  padding : 5px 0;
+}
+.field-name-field-ofed-job-reference .label-inline,
+.field-name-field-ofed-job-sector .label-inline,
+.field-name-field-ofed-job-languages .label-inline,
+.field-name-field-ofed-job-experience .label-inline,
+.field-name-field-ofed-job-occupation .label-inline,
+.field-name-field-ofed-job-diplomas .label-inline,
+.field-name-field-ofed-job-study-level .label-inline    {
+  font-weight: bold;
+}
+
+.field-name-field-ofed-job-pubdate,
+.field-name-field-ofed-job-update              {
+  font-size: 0.85em;
+  color: #B0AEA4;
+}
+.field-name-field-ofed-job-thumb              {
+  padding: 5px 10px 5px 0;
+  color: white; /*  Bug sous chrome  - le border de l'image est orange   */
+}
+.field-name-field-ofed-job-thumb img            {
+  border: 3px solid white;
+  box-shadow: 0 0 4px rgba(0, 0, 0, 0.25);
+}
+.field-name-field-ofed-job-summary,
+.field-name-field-ofed-job-body,
+.field-name-field-ofed-job-profile,
+.field-name-field-ofed-job-process,
+.field-name-field-ofed-job-description,
+.field-name-field-ofed-job-work-location,
+.field-name-field-ofed-job-docs,
+.field-name-field-ofed-job-video              {
+  border: 1px solid #E1DED7;
+  background: #F4F4F3;
+  padding: 10px 10px 10px 10px;
+  margin-bottom:10px;
+}
+.field-name-field-ofed-job-video .label-above,
+.field-name-field-ofed-job-profile .label-above,
+.field-name-field-ofed-job-process .label-above,
+.field-name-field-ofed-job-description .label-above,
+.field-name-field-ofed-job-work-location .label-above,
+.field-name-field-ofed-job-diplomas .label-above,
+.field-name-field-ofed-job-docs  .label-above {
+  text-decoration: underline;
+  font-weight: 600;
+  font-size: 1.1em;
+  padding-bottom: 10px;
+  display:block;
+}
+.view-display-id-ofed_job_block_column .views-row      {
+  float:left;
+  width:33%;
+}
+.view-display-id-ofed_job_block_column:before,
+.view-display-id-ofed_job_block_column:after        {
+  display: table;
+  content: " ";
+  line-height: 0;
+  clear: both;
+}
+.field-name-field-ofed-job-contact .view-mode-references  {
+  padding: 0;
+}
+@media   handheld,                      /* Only Opera Mobile is compliant for the moment*/
+    only screen and (max-device-width:767px),      /* Only for smartphone screen */
+    only screen and (max-width:767px)
+{
+  .view-display-id-ofed_job_block_column .views-row  {
+    display: block;
+    float: none;
+    width: auto;
+  }
+}
+
+#maincontent .node-ofed-job .field ul,
+#maincontent .node-ofed-job .field ul li {
+  display: list-item;
+}

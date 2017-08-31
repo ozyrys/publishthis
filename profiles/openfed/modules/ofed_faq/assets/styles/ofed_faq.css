@@ -1,0 +1,36 @@
+/*
+		FAQ		
+*/
+
+.view-ofed-faq .item-list									{
+	margin-top:20px;
+} 
+#maincontent .view-id-ofed_faq .view-display-id-ofed_faq_page_list_summary .item-list ul li,
+.view-id-ofed_faq .view-display-id-ofed_faq_page_list_summary .item-list ul li{
+	padding: 5px 0 5px 5px;
+	display: list-item;
+	background: none;
+	list-style: disc;
+	list-style-type: disc;
+	margin-left: 25px;
+}
+.view-ofed-faq .view-mode-teaser							{
+	padding:12px 0;
+	border-bottom: 1px solid #E0E0E0;
+}
+.view-ofed-faq .view-mode-teaser:after						{
+	content: " ";
+	position: absolute;
+	left: 0;
+	bottom: -2px;
+	width: 100%;
+	height: 1px;
+	border-bottom: 1px solid white;
+}
+.view-ofed-faq .view-mode-teaser p							{
+	border-top: none;
+	padding: 10px 0 0 0;
+}
+.view-ofed-faq .view-mode-teaser p:after					{
+	border-top:none;
+}

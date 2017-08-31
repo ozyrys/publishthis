@@ -1,0 +1,393 @@
+<?php
+
+/**
+ * Implements hook_install().
+ */
+function ofed_job_install() {
+  // Include ds settings.
+  $file = drupal_get_path('module', 'ofed_job') . '/install/_ofed_job.ds.inc';
+  if (file_exists($file)) {
+    // Include it.
+    include_once 'install/_ofed_job.ds.inc';
+
+    // Install ds customs fields.
+    if (function_exists('ofed_job_ds_custom_fields_info')) {
+      $fields = ofed_job_ds_custom_fields_info();
+      foreach ($fields as $id => $field) {
+        // Remove one key.
+        if (isset($field->api_version)) {
+          unset($field->api_version);
+        }
+        // Serialize the entities.
+        $field->entities = serialize($field->entities);
+        // Serialize the ui_limit.
+        $field->ui_limit = serialize($field->ui_limit);
+        // Serialize the properties.
+        $field->properties = serialize($field->properties);
+
+        // Cast variable like an array.
+        $field = (array) $field;
+
+        // Save in database.
+        db_insert('ds_fields')->fields($field)->execute();
+      }
+    }
+
+    // Install ds fields settings.
+    if (function_exists('ofed_job_ds_field_settings_info')) {
+      $fields = ofed_job_ds_field_settings_info();
+      foreach ($fields as $id => $field) {
+        // Remove one key.
+        if (isset($field->api_version)) {
+          unset($field->api_version);
+        }
+        // Serialize the settings.
+        $field->settings = serialize($field->settings);
+
+        // Cast variable like an array.
+        $field = (array) $field;
+
+        // Save in database.
+        db_insert('ds_field_settings')->fields($field)->execute();
+      }
+    }
+
+    // Install ds layouts settings.
+    if (function_exists('ofed_job_ds_layout_settings_info')) {
+      $layouts = ofed_job_ds_layout_settings_info();
+      foreach ($layouts as $id => $layout) {
+        // Remove one key.
+        if (isset($layout->api_version)) {
+          unset($layout->api_version);
+        }
+        // Serialize the settings.
+        $layout->settings = serialize($layout->settings);
+
+        // Cast variable like an array.
+        $layout = (array) $layout;
+
+        // Save in database.
+        db_insert('ds_layout_settings')->fields($layout)->execute();
+      }
+    }
+  }
+
+  // Paths alias management.
+  $path_source = 'jobs';
+  // Set path alias whitelist.
+  $path_alias_whitelist = variable_get('path_alias_whitelist', array());
+  if (!array_key_exists($path_source, $path_alias_whitelist)) {
+    $path_alias_whitelist[$path_source] = TRUE;
+    variable_set('path_alias_whitelist', $path_alias_whitelist);
+  }
+
+  // Set path alias for each languages.
+  $languages = language_list('enabled');
+  foreach ($languages as $language) {
+    // FR.
+    if (isset($language['fr'])) {
+      $path = array(
+        'source' => $path_source,
+        'alias' => 'jobs',
+        'language' => 'fr',
+      );
+      db_insert('url_alias')->fields($path)->execute();
+    }
+
+    // NL.
+    if (isset($language['nl'])) {
+      $path = array(
+        'source' => $path_source,
+        'alias' => 'jobs',
+        'language' => 'nl',
+      );
+      db_insert('url_alias')->fields($path)->execute();
+    }
+
+    // DE.
+    if (isset($language['de'])) {
+      $path = array(
+        'source' => $path_source,
+        'alias' => 'arbeitsplatze',
+        'language' => 'de',
+      );
+      db_insert('url_alias')->fields($path)->execute();
+    }
+  }
+
+  // Install Taxonomy vocabulary
+  $vocabularies = array(
+    'ofed_job_experience' => array(
+      'name' => 'Job experience',
+      'machine_name' => 'ofed_job_experience',
+      'description' => '',
+      'hierarchy' => '0',
+      'module' => 'taxonomy',
+      'weight' => '0',
+      'language' => 'und',
+      'i18n_mode' => '4',
+    ),
+    'ofed_job_occupation' => array(
+      'name' => 'Job occupation',
+      'machine_name' => 'ofed_job_occupation',
+      'description' => '',
+      'hierarchy' => '0',
+      'module' => 'taxonomy',
+      'weight' => '0',
+      'language' => 'und',
+      'i18n_mode' => '4',
+    ),
+    'ofed_job_study_level' => array(
+      'name' => 'Job study level',
+      'machine_name' => 'ofed_job_study_level',
+      'description' => '',
+      'hierarchy' => '0',
+      'module' => 'taxonomy',
+      'weight' => '0',
+      'language' => 'und',
+      'i18n_mode' => '4',
+    ),
+  );
+
+  // Install taxonomy terms...
+  $existing = taxonomy_get_vocabularies();
+  foreach ($vocabularies as $vocabulary) {
+    $vocabulary = (object) $vocabulary;
+    foreach ($existing as $existing_vocab) {
+      if ($existing_vocab->machine_name === $vocabulary->machine_name) {
+        $vocabulary->vid = $existing_vocab->vid;
+      }
+    }
+    taxonomy_vocabulary_save($vocabulary);
+  }
+  // Build terms array.
+  $experiences = array(
+    'en' => array('First job', '< 6 months', '6 months - 2 years', '2 years - 5 years', '5 years - 10 years', '> 10 years'),
+    'fr' => array('Premier emploi', '< 6 mois', '6 mois - 2 ans', '2 ans - 5 ans', '5 ans - 10 ans', '> 10 ans'),
+    'nl' => array('Eerste job', '< 6 maanden', '6 maanden - 2 jaar', '2 jaar - 5 jaar', '5 jaar - 10 jaar', '> 10 jaar'),
+  );
+  $occupations = array(
+    'en' => array('IT and Telecommunications', 'Sales & Purchasing', 'Banking, Finance Services & Insurance', 'Human Resources', 'Media & Information', 'Transport & Logistics', 'R&D, Science & Scientific Research', 'Land, Sea, Environment & Veterinary', 'Law', 'Education & Training', 'Police, Security and Protective', 'Engineering & Technical Jobs', 'Finance Administration & Auditing', 'Administrative Support & Secretarial', 'Marketing & Advertising', 'General Management', 'Manufacturing, Building and Manual Work', 'Health, Medicine, Social & Fitness', 'Accommodation, Catering & Tourism', 'Design & Architecture', 'Culture & Fine Arts', 'Public Services'),
+    'fr' => array('IT et Telecommunication', 'Vente et Achat', 'Banques, Services financiers & Assurance', 'Ressources Humaines', 'Media & Information', 'Transport & Logistique', 'R&D, Science & Recherche Scientifique', 'Terre, Mer, Environnement & Santé animalière', 'Droit', 'Formation & Training', 'Police, Sécurité et Protection', 'Engineering & Technique', 'Administration, Finance & Audit', 'Secrétariat et Support administratif', 'Marketing & Publicité', 'Direction Générale', 'Production, Construction, Artisanat', 'Santé, Médecine, Social', 'Horeca, Tourisme', 'Conception et architecture', 'Culture et art', 'Services publics'),
+    'nl' => array('IT en Telecommunicatie', 'Verkoop en inkoop', 'Banken, financiële diensten en verzekeringen', 'HR', 'Media en informatie', 'Transport en logistiek', 'R&D, wetenschap en wetenschappelijk onderzoek', 'Land, zee, milieu en natuurbehoud', 'Juridisch', 'Opleiding en training', 'Politie, Veiligheid en Beveiliging', 'Engineering & techniek', 'Financiën, administratie & accounting', 'Administratieve ondersteuning & secretariaat', 'Marketing, reclame & communicatie', 'General Management', 'Productie, constructie en handvaardigheid', 'Gezondheidszorg, sociale- en medische diensten', 'Horeca, toerisme', 'Ontwerp en architectuur', 'Cultuur en kunst', 'Overheidsdiensten'),
+  );
+  $studies = array(
+    'en' => array('Primary School', 'Secondary Education (Vocational)', 'Secondary Education (Artistic)', 'Secondary Education (Technical)', 'Secondary Education (General)', 'Specialisation', 'Profession-oriented bachelor (3y) (old: Higher Education Short Type - Graduate)', 'Academic bachelor (3y) + Master (1 or 2y) (old: Higher Education Long Type)', 'Academic bachelor (3y) + Master (1 or 2y) (old: university, licence)', 'Subsequent Bachelor', 'Subsequent Master', 'Doctorate', 'Professional Degree', 'Other'),
+    'fr' => array('Enseignement Primaire', 'Enseignement Secondaire (Professionnel)', 'Enseignement Secondaire (Artistique)', 'Enseignement Secondaire (Technique)', 'Enseignement Secondaire (Général)', 'Année de Spécialisation', 'Bachelier à orientation professionnelle (3 ans) (Enseignement Supérieur de Type Court – Graduat)', 'Bachelier académique (3 ans) + Master (1 ou 2 ans) (Enseignement Supérieur de Type Long)', 'Bachelier académique (3 ans) + Master (1 ou 2 ans) (université, licence)', 'Bachelier aprés bachelier', 'Master après master', 'Doctorat', 'Accès à la Profession', 'Autres'),
+    'nl' => array('Lager onderwijs', 'Secundair Onderwijs (Beroeps)', 'Secundair Onderwijs (Kunst)', 'Secundair Onderwijs (Technisch)', 'Secundair Onderwijs (Algemeen)', 'Specialisatiejaar', 'Professionele bachelor (3j) (vroegere Hoger Onderwijs Korte Type – Graduaat)', 'Academische bachelor (3j) + Master (1 of 2j) (vroegere Hoger Onderwijs Lange Type)', 'Academische bachelor (3j) + Master (1 of 2j) (vroegere universitair, licentiaat)', 'Bachelor na bachelor', 'Master na master', 'Doctoraat', 'Professionele Graad', 'Ander'),
+  );
+
+  $experience_vocabulary = taxonomy_vocabulary_machine_name_load('ofed_job_experience');
+  $occupation_vocabulary = taxonomy_vocabulary_machine_name_load('ofed_job_occupation');
+  $study_vocabulary = taxonomy_vocabulary_machine_name_load('ofed_job_study_level');
+
+  // Get enabled languages.
+  $languages = language_list();
+  foreach ($languages as $language) {
+    $lang = empty($language->prefix) ? $language->language : $language->prefix;
+
+    if (!empty($experiences[$lang])) {
+      _ofed_job_taxonomy_term_save($experiences[$lang], $experience_vocabulary->vid, $lang);
+    }
+
+    if (!empty($occupations[$lang])) {
+      _ofed_job_taxonomy_term_save($occupations[$lang], $occupation_vocabulary->vid, $lang);
+    }
+
+    if (!empty($studies[$lang])) {
+      _ofed_job_taxonomy_term_save($studies[$lang], $study_vocabulary->vid, $lang);
+    }
+  }
+}
+
+/**
+ * Taxonomy terms save multiple value at once.
+ * @param type $terms
+ * @param type $vid
+ * @param type $lang
+ * @param type $update
+ */
+function _ofed_job_taxonomy_term_save($terms, $vid, $lang, $update = FALSE) {
+  $existing_terms = array();
+
+  if ($update) {
+    $existing_terms = taxonomy_get_tree($vid);
+    $existing_terms = array_map('_ofed_team_get_existing_term_names', $existing_terms);
+  }
+
+  $weight = 0;
+  foreach ($terms as $term) {
+    if (!$update || !in_array($term, $existing_terms)) {
+      $new_term = new stdClass();
+      $new_term->name = $term;
+      $new_term->vid = $vid;
+      $new_term->language = $lang;
+      $new_term->weight = $weight;
+      // Delete the 'menu_rebuild_needed' variable otherwise drupal will rebuild
+      // the menu for every single taxonomy term we create in this install file.
+      // DO NOT REMOVE IT!
+      variable_del('menu_rebuild_needed');
+      taxonomy_term_save($new_term);
+      $weight++;
+    }
+  }
+}
+
+/**
+ * Create the missing paths alias for each languages.
+ */
+function ofed_job_update_7100() {
+  $module = db_select('system', 's')
+    ->fields('s')
+    ->condition('name', 'ofed_feature_job')
+    ->execute()
+    ->fetchObject();
+
+  if (!empty($module) && $module->schema_version < 7100) {
+    // Paths alias management.
+    // Delete wrong alias.
+    db_delete('url_alias')->condition('source', 'job')->condition('alias', 'job')->condition('language', 'fr')->execute();
+    db_delete('url_alias')->condition('source', 'job')->condition('alias', 'job')->condition('language', 'nl')->execute();
+
+    // Delete from path alias whitelist.
+    $path_alias_whitelist = variable_get('path_alias_whitelist', array());
+    if (array_key_exists('job', $path_alias_whitelist)) {
+      unset($path_alias_whitelist['job']);
+      variable_set('path_alias_whitelist', $path_alias_whitelist);
+    }
+
+    // Add newest alias.
+    $path_source = 'jobs';
+    // Set path alias whitelist.
+    $path_alias_whitelist = variable_get('path_alias_whitelist', array());
+    if (!array_key_exists($path_source, $path_alias_whitelist)) {
+      $path_alias_whitelist[$path_source] = TRUE;
+      variable_set('path_alias_whitelist', $path_alias_whitelist);
+    }
+
+    // Set path alias for each languages.
+    $languages = language_list('enabled');
+    foreach ($languages as $language) {
+      // FR.
+      if (isset($language['fr']) && !drupal_lookup_path('alias', $path_source, 'fr')) {
+        $path = array(
+          'source'   => $path_source,
+          'alias'    => 'jobs',
+          'language' => 'fr',
+        );
+        db_insert('url_alias')->fields($path)->execute();
+      }
+
+      // NL.
+      if (isset($language['nl']) && !drupal_lookup_path('alias', $path_source, 'nl')) {
+        $path = array(
+          'source'   => $path_source,
+          'alias'    => 'jobs',
+          'language' => 'nl',
+        );
+        db_insert('url_alias')->fields($path)->execute();
+      }
+    }
+  }
+}
+
+/**
+ * Disable unused view modes.
+ */
+function ofed_job_update_7101() {
+  $module = db_select('system', 's')
+    ->fields('s')
+    ->condition('name', 'ofed_feature_job')
+    ->execute()
+    ->fetchObject();
+
+  if (!empty($module) && $module->schema_version < 7101) {
+    // Set the bundle name.
+    $bundle = 'ofed_job';
+    // Set what display will be removed.
+    $displays_to_delete = array('search_index', 'block_info');
+
+    // Delete display suite layout settings.
+    foreach ($displays_to_delete as $display_to_delete) {
+      db_delete('ds_layout_settings')->condition('id', 'node|' . $bundle . '|' . $display_to_delete)->execute();
+    }
+    // Delete display suite field settings.
+    foreach ($displays_to_delete as $display_to_delete) {
+      db_delete('ds_field_settings')->condition('id', 'node|' . $bundle . '|' . $display_to_delete)->execute();
+    }
+
+    // Update field instance.
+    // Get field config instance for each field used by the content type.
+    // Select each field instance for this bundle.
+    $fields = db_select('field_config_instance', 'fci')->fields('fci')->condition('bundle', $bundle)->execute()->fetchAll();
+    foreach ($fields as $field) {
+      // Get data.
+      $data = unserialize($field->data);
+      // Remove displays.
+      foreach ($displays_to_delete as $display_to_delete) {
+        if (isset($data['display'][$display_to_delete])) {
+          unset($data['display'][$display_to_delete]);
+        }
+      }
+      // Set data.
+      $field->data = serialize($data);
+      // Update record.
+      db_update('field_config_instance')->fields(array('data' => $field->data))->condition('id', $field->id)->execute();
+    }
+
+    // Update bundle settings variable.
+    // Get variable content.
+    $bundle_settings_node = variable_get('field_bundle_settings_node__' . $bundle, array());
+    if (!empty($bundle_settings_node)) {
+      // Disable displays.
+      foreach ($displays_to_delete as $display_to_delete) {
+        if (isset($bundle_settings_node['view_modes'][$display_to_delete])) {
+          if ($display_to_delete == 'block_info') {
+            unset($bundle_settings_node['view_modes'][$display_to_delete]);
+            if (isset($bundle_settings_node['extra_fields']['display']['language'][$display_to_delete])) {
+              unset($bundle_settings_node['extra_fields']['display']['language'][$display_to_delete]);
+            }
+          }
+          else {
+            $bundle_settings_node['view_modes'][$display_to_delete] = array('custom_settings' => FALSE);
+          }
+        }
+      }
+      // Set variable content.
+      variable_set('field_bundle_settings_node__' . $bundle, $bundle_settings_node);
+    }
+  }
+}
+
+/**
+ * Create the missing paths alias for german language.
+ */
+function ofed_job_update_7102() {
+  $module = db_select('system', 's')
+    ->fields('s')
+    ->condition('name', 'ofed_feature_job')
+    ->execute()
+    ->fetchObject();
+
+  if (!empty($module) && $module->schema_version < 7102) {
+    // Paths alias management.
+    $path_source = 'jobs';
+    // Set path alias whitelist.
+    $path_alias_whitelist = variable_get('path_alias_whitelist', array());
+    if (!array_key_exists($path_source, $path_alias_whitelist)) {
+      $path_alias_whitelist[$path_source] = TRUE;
+      variable_set('path_alias_whitelist', $path_alias_whitelist);
+    }
+
+    // Set path alias for german language.
+    $languages = language_list('enabled');
+    if (isset($languages['de']) && !drupal_lookup_path('alias', $path_source, 'de')) {
+      $path = array(
+        'source'   => $path_source,
+        'alias'    => 'arbeitsplatze',
+        'language' => 'de',
+      );
+      db_insert('url_alias')->fields($path)->execute();
+    }
+  }
+}

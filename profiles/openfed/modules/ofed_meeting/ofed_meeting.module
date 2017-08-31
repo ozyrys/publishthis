@@ -1,0 +1,49 @@
+<?php
+
+/**
+ * @file
+ * Module needed to manage meetings with the Openfed distribution.
+ */
+include_once 'ofed_meeting.features.inc';
+
+/**
+ * Implements hook_theme_registry_alter().
+ */
+function ofed_meeting_theme_registry_alter(&$theme_registry) {
+  $mod_path = drupal_get_path('module', 'ofed_meeting');
+  $theme_registry_copy = $theme_registry; // Munge on a copy
+  _theme_process_registry($theme_registry_copy, 'phptemplate', 'theme_engine', 'pow', $mod_path);
+  $theme_registry += array_diff_key($theme_registry_copy, $theme_registry);
+  $hooks = array('node');
+  foreach ($hooks as $h) {
+    _ofed_meeting_insert_after_first_element($theme_registry[$h]['theme paths'], $mod_path);
+  }
+}
+
+/**
+ * Helper function for re-ordering arrays (needed by theme_registry_alter).
+ */
+function _ofed_meeting_insert_after_first_element(&$a, $element) {
+  if (is_array($a)) {
+    $first_element = array_shift($a);
+    array_unshift($a, $first_element, $element);
+  }
+}
+
+/**
+ * Implements hook_preprocess_node().
+ */
+function ofed_meeting_preprocess_node() {
+  drupal_add_css(drupal_get_path('module', 'ofed_meeting') . '/assets/styles/ofed_meeting.css');
+}
+
+/**
+ * Implements hook_ofed_user_default_permissions().
+ */
+function ofed_meeting_ofed_user_default_permissions() {
+  // Function used by the ofed_rerquirements module. The hook defined in the
+  // required file hereunder is not available otherwise.
+  require_once drupal_get_path('module', 'ofed_meeting') . '/ofed_meeting.features.user_permission.inc';
+
+  return ofed_meeting_user_default_permissions();
+}

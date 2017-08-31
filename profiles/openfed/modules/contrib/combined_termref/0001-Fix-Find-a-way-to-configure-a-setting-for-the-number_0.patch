@@ -1,0 +1,93 @@
+From d819aae524252380f8901933ce6a58a92ed5f9a2 Mon Sep 17 00:00:00 2001
+From: capy <capy.net@gmail.com>
+Date: Thu, 27 Jun 2013 19:18:03 +0200
+Subject: [PATCH] Fix: Find a way to configure a setting for the number of
+ extra values to add, per field instance. Fix: coding standards.
+
+---
+ combined_termref.module | 39 +++++++++++++++++++++------------------
+ 1 file changed, 21 insertions(+), 18 deletions(-)
+
+diff --git a/combined_termref.module b/combined_termref.module
+index d44c5fb..9362c8e 100644
+--- a/combined_termref.module
++++ b/combined_termref.module
+@@ -11,16 +11,14 @@
+  * Implements hook_field_info_alter().
+  */
+ function combined_termref_field_info_alter(&$info) {
+-  // Add two more vocabularies to be referenced in term reference fields
+-  // @TODO: Find a way to configure a setting for the number of extra values to add, per field instance.
+-  $info['taxonomy_term_reference']['settings']['allowed_values'][] = array(
+-    'vocabulary' => '',
+-    'parent' => '0',
+-  );
+-  $info['taxonomy_term_reference']['settings']['allowed_values'][] = array(
+-    'vocabulary' => '',
+-    'parent' => '0',
+-  );
++  // We add as many vocabularies as available on the system.
++  $vocabularies = count(taxonomy_get_vocabularies());
++  for ($i = 0; $i < $vocabularies; $i++) {
++    $info['taxonomy_term_reference']['settings']['allowed_values'][] = array(
++      'vocabulary' => '',
++      'parent' => '0',
++    );
++  }
+ }
+ 
+ /**
+@@ -46,7 +44,7 @@ function combined_termref_form_field_ui_field_edit_form_alter(&$form, &$form_sta
+ }
+ 
+ /**
+- * Helper function to make the extra vocabulary fields non-required
++ * Helper function to make the extra vocabulary fields non-required.
+  */
+ function _combined_termref_modify_field_settings_form(&$form) {
+   foreach ($form['field']['settings']['allowed_values'] as $delta => $form_item) {
+@@ -54,7 +52,7 @@ function _combined_termref_modify_field_settings_form(&$form) {
+     if (!is_numeric($delta) || ($delta == 0)) {
+       continue;
+     }
+-    // Make it non-required fields
++    // Make it non-required fields.
+     $form['field']['settings']['allowed_values'][$delta]['vocabulary']['#required'] = FALSE;
+     $form['field']['settings']['allowed_values'][$delta]['vocabulary']['#empty_option'] = t('- None -');
+     $form['field']['settings']['allowed_values'][$delta]['vocabulary']['#empty_value'] = '';
+@@ -63,21 +61,26 @@ function _combined_termref_modify_field_settings_form(&$form) {
+        If none is selected, the value of the first vocabulary field above will be used.'
+     );
+   }
+-  // Add a custom submit handler at the front to be executed first
++  // Add a custom submit handler at the front to be executed first.
+   array_unshift($form['#submit'], '_combined_termref_field_settings_submit');
+ }
+ 
+ /**
+- * Submit handler to sanitize values of extra vocabulary fields if they are empty so that taxonomy_autocomplete() and
+- * other callback options suppliers will not error on empty vocabulary values passed.
++ * Submit handler.
++ *
++ * Submit handler to sanitize values of extra vocabulary fields if they are
++ * empty so that taxonomy_autocomplete() and other callback options suppliers
++ * will not error on empty vocabulary values passed.
++ *
++ * @see _combined_termref_modify_field_settings_form()
+  */
+ function _combined_termref_field_settings_submit($form, &$form_state) {
+-  foreach($form_state['values']['field']['settings']['allowed_values'] as $delta => $form_item) {
+-    // Skip the first vocab
++  foreach ($form_state['values']['field']['settings']['allowed_values'] as $delta => $form_item) {
++    // Skip the first vocab.
+     if (!is_numeric($delta) || ($delta == 0)) {
+       continue;
+     }
+-    // If a vocabulary field item is empty, copy over the first item's values
++    // If a vocabulary field item is empty, copy over the first item's values.
+     if (empty($form_item['vocabulary']) && $delta == 0) {
+       $form_state['values']['field']['settings']['allowed_values'][$delta]['vocabulary'] = $form_state['values']['field']['settings']['allowed_values'][0]['vocabulary'];
+       $form_state['values']['field']['settings']['allowed_values'][$delta]['parent'] = $form_state['values']['field']['settings']['allowed_values'][0]['parent'];
+-- 
+1.8.1.2
+

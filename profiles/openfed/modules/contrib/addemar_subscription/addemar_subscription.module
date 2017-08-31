@@ -1,0 +1,416 @@
+<?php
+/**
+ * @file
+ * Addemar Subscription module.
+ */
+
+/**
+ * Set up includes.
+ */
+require_once 'includes/addemar_subscription.constant.inc';
+require_once 'includes/addemar_subscription.functions.inc';
+
+/**
+ * Implements hook_help().
+ */
+function addemar_subscription_help($path, $arg) {
+  switch ($path) {
+    case 'admin/help#addemar_subscription':
+      return t('<p><strong>Description:</strong><br/>This module provides a form to subscribe to the Addemar newsletter service via a SOAP web service.</p/>');
+  }
+}
+
+/**
+ * Implements hook_variable_group_info().
+ */
+function addemar_subscription_variable_group_info() {
+  $groups['addemar_subscription'] = array(
+    'title' => t('Addemar Subscription'),
+    'description' => t('Addemar settings'),
+    'access' => 'administer site configuration',
+  );
+  return $groups;
+}
+
+/**
+ * Implements hook_variable_info().
+ */
+function addemar_subscription_variable_info($options) {
+  $variable['addemar_subscription_addemar_fields'] = array(
+    'type' => 'text',
+    'title' => t('Addemar Fields', array(), $options),
+    'description' => t('List all fields declared in Addemar here.', array(), $options),
+    'default' => '',
+    'group' => 'addemar_subscription',
+  );
+  $variable['addemar_subscription_language_field'] = array(
+    'type' => 'string',
+    'title' => t('Addemar Language Field', array(), $options),
+    'description' => t('The Addemar field that should be used to store the language for a user.', array(), $options),
+    'default' => '',
+    'group' => 'addemar_subscription',
+  );
+  $variable['addemar_subscription_submit_button'] = array(
+    'type' => 'string',
+    'title' => t('Submit button', array(), $options),
+    'description' => t('Change the text value on the submit button.', array(), $options),
+    'default' => ADDEMAR_SUBSCRIPTION_SUBMIT_BUTTON,
+    'group' => 'addemar_subscription',
+  );
+
+  $variable['addemar_subscription_message_success'] = array(
+    'type' => 'string',
+    'title' => t('Message success', array(), $options),
+    'description' => t('The message that will be displayed if everything went well.', array(), $options),
+    'default' => ADDEMAR_SUBSCRIPTION_MESSAGE_SUCCESS,
+    'group' => 'addemar_subscription',
+  );
+  $variable['addemar_subscription_message_error'] = array(
+    'type' => 'string',
+    'title' => t('Message error', array(), $options),
+    'description' => t('The message that will be displayed if an error is returned by Addemar.', array(), $options),
+    'default' => ADDEMAR_SUBSCRIPTION_MESSAGE_ERROR,
+    'group' => 'addemar_subscription',
+  );
+
+  return $variable;
+}
+
+/**
+ * Implements hook_permission().
+ */
+function addemar_subscription_permission() {
+  return array(
+    'access addemar_subscription configuration' => array(
+      'title' => t('Configure subscription form'),
+    ),
+    'access addemar_subscription content' => array(
+      'title' => t('Access subscription form'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_menu().
+ */
+function addemar_subscription_menu() {
+  $items['admin/config/services/addemar_subscription'] = array(
+    'title' => 'Addemar subscription',
+    'description' => 'Configure Addemar subscription.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('addemar_subscription_admin'),
+    'access arguments' => array('access addemar_subscription configuration'),
+    'type' => MENU_NORMAL_ITEM,
+    'file' => 'includes/addemar_subscription.admin.inc',
+  );
+  $items[variable_get('addemar_subscription_page_url', ADDEMAR_SUBSCRIPTION_PAGE_URL)] = array(
+    'title' => 'Newsletter registration',
+    'type' => MENU_NORMAL_ITEM,
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('addemar_subscription_subscribe_form'),
+    'access arguments' => array('access addemar_subscription content'),
+  );
+
+  return $items;
+}
+
+/**
+ * Implements hook_form().
+ */
+function addemar_subscription_subscribe_form() {
+  global $language;
+  $form = array();
+
+  drupal_add_css(drupal_get_path('module', 'addemar_subscription') . '/assets/styles/addemar_subscription.css');
+
+  // Perform a language check, as some sites may want to disable the newsletter
+  // for given languages.
+  $languages_enabled = variable_get('addemar_subscription_languages_enabled', array(
+    'nl',
+    'fr',
+    'de',
+    'en',
+  ));
+  if (!in_array($language->language, array_filter($languages_enabled))) {
+    $language_links = array();
+    foreach ($languages_enabled as $language_enabled) {
+      $list = language_list('enabled');
+      if (isset($list[1][$language_enabled])) {
+        $language_links[] = l($list[1][$language_enabled]->native, $_GET['q'], array('language' => $list[1][$language_enabled]));
+      }
+    }
+    $form['error'] = array(
+      '#markup' => t('Please choose a newsletter language: !languages', array('!languages' => theme('item_list', array('items' => $language_links)))),
+    );
+    return $form;
+  }
+
+  $soap_wsdl = variable_get('addemar_subscription_soap_wsdl', ADDEMAR_SUBSCRIPTION_SOAP_WSDL);
+
+  if (!variable_get('addemar_subscription_soap_wsdl', FALSE)) {
+    $form['addemar_subscription_error'] = array(
+      '#markup' => t('The site administrator has not yet configured an Addemar SOAP WSDL URL.'),
+    );
+  }
+  elseif (_addemar_subscription_get_soap_client($soap_wsdl)) {
+
+    $newsletters = variable_get('addemar_subscription_groups', array());
+    $options = array();
+
+    foreach ($newsletters as $newsletter) {
+      $options[implode($newsletter['group_id'], ',')] = t(check_plain($newsletter['description']));
+    }
+
+    if (!empty($options)) {
+
+      if (count($options) > 1) {
+        $form['newsletters'] = array(
+          '#type' => 'checkboxes',
+          '#title' => t('Please choose the newsletters you want to subscribe to'),
+          '#options' => $options,
+          '#required' => TRUE,
+        );
+      }
+      else {
+        $group_id = array_keys($options);
+        $newsletter = array_shift($options);
+        $form['newsletters'] = array(
+          '#type' => 'hidden',
+          '#value' => $group_id,
+        );
+        $form['newsletter_markup'] = array(
+          '#markup' => '<div class="addemar_newsletter_markup">' . t('Subscribe to !newsletter', array('!newsletter' => '<em>' . t(check_plain($newsletter)) . '</em>')) . '</div>',
+        );
+
+      }
+    }
+
+    $email_exist = FALSE;
+    $fields = _addemar_subscription_addemar_fields();
+
+    if (!empty($fields)) {
+
+      foreach ($fields as $field) {
+        $field = explode('|', $field);
+
+        switch (count($field)) {
+          case 3:
+            list($name, $label, $required) = $field;
+            break;
+
+          case 2:
+            list($name, $label) = $field;
+            unset($required);
+            break;
+
+        }
+
+        $form['addemar_subscription_' . $name] = array(
+          '#type' => 'textfield',
+          '#title' => t(check_plain($label)),
+          '#required' => (isset($required) || $name === 'email') ? TRUE : FALSE,
+        );
+        $email_exist = ($name === 'email');
+      }
+    }
+
+    // The email is required whatsoever, so add it if not listed in the admin.
+    if (!$email_exist) {
+      $form['addemar_subscription_email'] = array(
+        '#type' => 'textfield',
+        '#title' => t('Email'),
+        '#required' => TRUE,
+      );
+    }
+
+    $content_profiles = _addemar_subscription_get_content_profiles();
+    if (!empty($content_profiles)) {
+      $form['content_profiles'] = array(
+        '#type' => 'checkboxes',
+        '#title' => t('Please choose the categories you wish to receive news about'),
+        '#options' => $content_profiles,
+        // Enable all checkboxes by default.
+        '#default_value' => array_keys($content_profiles),
+        '#required' => TRUE,
+      );
+    }
+
+    $submit_text = variable_get_value('addemar_subscription_submit_button');
+    $form['submit'] = array(
+      '#type' => 'submit',
+      '#value' => t(check_plain($submit_text)),
+    );
+  }
+  else {
+    $form['addemar_subscription_error'] = array(
+      '#markup' => t('The Addemar subscription settings are not properly configured. Please check the SOAP WSDL URL.'),
+    );
+  }
+
+  return $form;
+}
+
+/**
+ * Implements hook_validate().
+ *
+ * @see addemar_subscription_subscribe_form_submit()
+ */
+function addemar_subscription_subscribe_form_validate($form, &$form_state) {
+  if (!valid_email_address(trim($form_state['values']['addemar_subscription_email']))) {
+    form_set_error('email', t('Please enter a valid email address.'));
+  }
+  // Validate the keys, as they will be output into the XML request.
+  if (isset($form_state['values']['content_profiles'])) {
+    foreach (array_keys(array_filter($form_state['values']['content_profiles'])) as $subscribed_profile_key) {
+      if (!preg_match('/^[a-z0-9 ]+$/i', $subscribed_profile_key)) {
+        form_set_error('content_profiles', t('Please select a valid category.'));
+      }
+    }
+  }
+}
+
+/**
+ * Implements hook_form_submit().
+ *
+ * @see addemar_subscription_subscribe_form_validate()
+ */
+function addemar_subscription_subscribe_form_submit($form, &$form_state) {
+  $success = FALSE;
+
+  if ($s_client = _addemar_subscription_get_soap_client()) {
+    $source = variable_get('addemar_subscription_source_message', ADDEMAR_SUBSCRIPTION_SOURCE_MESSAGE);
+    $language_code = variable_get('addemar_subscription_language_code', ADDEMAR_SUBSCRIPTION_LANGUAGE_CODE);
+
+    // Get interface language.
+    global $language;
+
+    switch ($language->language) {
+      case 'fr':
+        $lang_code = 'fr_BE';
+        break;
+
+      case 'nl':
+        $lang_code = 'nl_BE';
+        break;
+
+      case 'de':
+        $lang_code = 'de_DE';
+        break;
+
+      case 'en':
+      default:
+        $lang_code = 'en_UK';
+    }
+    $contact_data = $s_client->getContactStructure();
+
+    for ($i = 0; $i < count($contact_data->fields); $i++) {
+      if ($contact_data->fields[$i]->name == $language_code) {
+        $contact_data->fields[$i]->value = $language->language;
+      }
+      if (array_key_exists('addemar_subscription_' . $contact_data->fields[$i]->name, $form_state['values'])) {
+        $contact_data->fields[$i]->value = $form_state['values']['addemar_subscription_' . $contact_data->fields[$i]->name];
+      }
+    }
+    $success = TRUE;
+
+    if ($contact_data->cid = $s_client->createContact($contact_data)) {
+      $groups_ids = array_values(array_filter($form_state['values']['newsletters']));
+      foreach ($groups_ids as $group_id) {
+        $group_id = explode(',', $group_id);
+        foreach ($group_id as $key => $id) {
+          $args = array(
+            'contact_data' => $contact_data,
+            'log_msg' => $source,
+            'language' => $lang_code,
+            'mgid' => $id,
+          );
+          $cid = $s_client->__soapCall('formOptin', $args);
+
+          if (!is_numeric($cid)) {
+            $success = FALSE;
+          }
+        }
+      }
+    }
+    else {
+      $success = FALSE;
+    }
+
+  }
+  // Check return.
+  if ($success) {
+    $status = t(check_plain(variable_get_value('addemar_subscription_message_success')));
+    drupal_set_message($status, 'status');
+    // Sign up the user to content profiles.
+    if (!empty($form_state['values']['content_profiles'])) {
+      _addemar_subscription_content_profiles_signup($form_state, $s_client);
+    }
+  }
+  else {
+    $error = t(check_plain(variable_get_value('addemar_subscription_message_error')));
+    drupal_set_message($error, 'error');
+  }
+}
+
+/**
+ * Helper function for addemar_subscription_subscribe_form_submit().
+ *
+ * Sets up the content profiles for a contact and shows a confirmation message.
+ */
+function _addemar_subscription_content_profiles_signup($form_state, $s_client) {
+  $email = $form_state['values']['addemar_subscription_email'];
+  $profiles_list = implode(';', array_keys(array_filter($form_state['values']['content_profiles'])));
+  $xml = '<?xml version="1.0" encoding="UTF-8"?>
+<addemar type="webservice" version="1.5">
+  <contacts>
+     <contact>
+       <email>' . $email . '</email>
+       <pf_prof>' . $profiles_list . '</pf_prof>
+     </contact>
+  </contacts>
+</addemar>';
+  $job_id = $s_client->importContacts($xml, 'Single contact import: ' . $email);
+  if (is_numeric($job_id)) {
+    $result = $s_client->getScheduledJobStatus($job_id);
+    watchdog('addemar_subscription', 'Single contact import #!job_id result: !result', array(
+      '!job_id' => $job_id,
+      '!result' => $result,
+    ));
+  }
+
+  // Show confirmation message.
+  $profiles = _addemar_subscription_get_content_profiles();
+  $subscribed_profiles = array();
+  foreach (array_keys(array_filter($form_state['values']['content_profiles'])) as $subscribed_profile_key) {
+    $subscribed_profiles[] = $profiles[$subscribed_profile_key];
+  }
+  drupal_set_message(t('You subscribed to the following categories: !categories', array('!categories' => implode(', ', $subscribed_profiles))));
+}
+
+/**
+ * Implements hook_block_info().
+ */
+function addemar_subscription_block_info() {
+  $blocks = array();
+  $blocks['addemar_subscription'] = array(
+    'info' => t('Addemar: Newsletter registration'),
+  );
+  return $blocks;
+}
+
+/**
+ * Implements hook_block_view().
+ */
+function addemar_subscription_block_view($delta = '') {
+  $block = array();
+  switch ($delta) {
+    case 'addemar_subscription':
+      if (user_access('access addemar_subscription content')) {
+        $block['subject'] = t('Newsletter registration');
+        $block['content'] = drupal_get_form('addemar_subscription_subscribe_form');
+      }
+      break;
+
+  }
+  return $block;
+}

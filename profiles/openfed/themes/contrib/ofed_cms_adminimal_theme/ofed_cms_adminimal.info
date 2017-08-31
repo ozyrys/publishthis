@@ -1,0 +1,25 @@
+name = Openfed CMS Adminimal Theme
+description = This is a sub-theme of theme Adminimal, for use in the Openfed distribution.
+core = 7.x
+base theme = adminimal
+
+regions[hidden] = Hidden
+regions[content_before] = Before Content
+regions[sidebar_left] = Sidebar Left
+regions[content] = Content
+regions[sidebar_right] = Sidebar Right
+regions[content_after] = After Content
+regions[help] = Help
+regions[page_top] = Page top
+regions[page_bottom] = Page bottom
+
+settings[ofed_cms_adminimal_user_manual_link] = 'http://www.services.fedict.be/node/619'
+
+scripts[] = assets/scripts/script.js
+
+; Information added by Drupal.org packaging script on 2016-06-09
+version = "7.x-1.0-beta1"
+core = "7.x"
+project = "ofed_cms_adminimal_theme"
+datestamp = "1465470856"
+

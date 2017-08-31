@@ -1,0 +1,74 @@
+<?php
+
+/**
+ * Implements hook_install().
+ */
+function ofed_slider_install() {
+  // Include ds settings.
+  $file = drupal_get_path('module', 'ofed_slider') . '/install/_ofed_slider.ds.inc';
+  if (file_exists($file)) {
+    // Include it.
+    include_once 'install/_ofed_slider.ds.inc';
+
+    // Install ds customs fields.
+    if (function_exists('ofed_slider_ds_custom_fields_info')) {
+      $fields = ofed_slider_ds_custom_fields_info();
+      foreach ($fields as $id => $field) {
+        // Remove one key.
+        if (isset($field->api_version)) {
+          unset($field->api_version);
+        }
+        // Serialize the entities.
+        $field->entities = serialize($field->entities);
+        // Serialize the ui_limit.
+        $field->ui_limit = serialize($field->ui_limit);
+        // Serialize the properties.
+        $field->properties = serialize($field->properties);
+
+        // Cast variable like an array.
+        $field = (array) $field;
+
+        // Save in database.
+        db_insert('ds_fields')->fields($field)->execute();
+      }
+    }
+
+    // Install ds fields settings.
+    if (function_exists('ofed_slider_ds_field_settings_info')) {
+      $fields = ofed_slider_ds_field_settings_info();
+      foreach ($fields as $id => $field) {
+        // Remove one key.
+        if (isset($field->api_version)) {
+          unset($field->api_version);
+        }
+        // Serialize the settings.
+        $field->settings = serialize($field->settings);
+
+        // Cast variable like an array.
+        $field = (array) $field;
+
+        // Save in database.
+        db_insert('ds_field_settings')->fields($field)->execute();
+      }
+    }
+
+    // Install ds layouts settings.
+    if (function_exists('ofed_slider_ds_layout_settings_info')) {
+      $layouts = ofed_slider_ds_layout_settings_info();
+      foreach ($layouts as $id => $layout) {
+        // Remove one key.
+        if (isset($layout->api_version)) {
+          unset($layout->api_version);
+        }
+        // Serialize the settings.
+        $layout->settings = serialize($layout->settings);
+
+        // Cast variable like an array.
+        $layout = (array) $layout;
+
+        // Save in database.
+        db_insert('ds_layout_settings')->fields($layout)->execute();
+      }
+    }
+  }
+}

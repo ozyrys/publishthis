@@ -1,0 +1,35 @@
+CHANGELOG
+=========
+
+20 August 2014 - Version 7.x-1.1-rc2
+------------------------------------
+
+  * Issues:
+    #2319151: Startpage - "Show" not filtering content types
+
+10 June 2014 - Version 7.x-1.1-rc1
+----------------------------------
+
+  * Issues:
+    #2114247: Start Page: Modify analytics link
+    #2118525: Add go to CMS button and remove Switcher block
+    #2134781: Administration theme module not enabled on installed/existing sites
+    #2128833: Start Page: Add a show button for each content type
+
+02 September 2013 - Version 7.x-1.0
+-----------------------------------
+
+ * Issues:
+    #2068935: Move menu entry into "admin/config/administration"
+    #2027593: Add changelog into each custom module
+    #2024941: Code quality: warnings in PAreview report
+    # Others:
+      - Remove trailing whitespace
+      - Add faq's cms view link
+      - Add hook_permissions
+
+17 June 2013 - Version 1.0
+--------------------------
+
+ * First release like standalone module.
+   Before this date, this module was included into the OpenFed project.

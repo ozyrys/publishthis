@@ -1,0 +1,33 @@
+<?php
+
+/**
+ * Implements hook_schema().
+ */
+function ofed_requirements_schema() {
+  
+}
+
+/**
+ * Implements hook_install().
+ */
+function ofed_requirements_install() {
+  // Check the install profile name.
+  // It's not possible to use a simple dependencie beacause "openfed" is not a module but a distribution.
+  // If the dependencies is added, it's not possible to uncheck this module from the module list, cause it become required by drupal
+  // and the checkbox is disabled.
+  $profile_name = variable_get('install_profile', '');
+  if ($profile_name != 'openfed') {
+    // Set message.
+    drupal_set_message(t('The "Requirements Module" must be used with the OpenFed distribution only'));
+    
+    // Return "FALSE" to stop install.
+    return FALSE;
+  }
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function ofed_requirements_uninstall() {
+  
+}

@@ -1,0 +1,28 @@
+@charset "utf-8";
+
+#block-ofed-federal-header-federal-header h2{
+  display:none;
+}
+#ofed-federal-header-wrapper{
+  background: url(../images/federalheader_bg.gif) repeat-x right bottom scroll;
+  position: relative;
+}
+.ie7 #ofed-federal-header-wrapper,
+.ie8 #ofed-federal-header-wrapper{
+	padding: 10px 0 0 0;
+}
+#ofed-federal-header-wrapper #ofed-federal-header-link{
+  color: #333333;
+  font-family: arial, verdana, sans-serif;
+  font-size: 0.8125em;
+  text-align: right;
+  padding: 0.9em 4em 0.8em 0;
+  line-height: 1.22em;
+}
+#ofed-federal-header-wrapper #ofed-federal-header-logo{
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 32px;
+  height: 23px;
+}

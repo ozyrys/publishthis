@@ -1,0 +1,80 @@
+.field-name-field-ofed-press-pubdate,
+.field-name-field-ofed-press-update				{
+	font-size: 0.85em;
+	color: #B0AEA4;
+}
+.field-name-field-ofed-press-author,
+.field-name-field-ofed-press-source				{
+	font-size: 0.85em;
+	color: #B0AEA4;
+	margin: 10px 0;
+}
+
+.field-name-field-ofed-press-source				{
+	margin-bottom:10px;
+}
+.field-name-field-ofed-press-thumb				{
+	padding: 5px 10px 5px 0;
+	color: white; /*  Bug sous chrome  - le border de l'image est orange 	*/
+}
+.field-name-field-ofed-press-thumb img			{
+	border: 3px solid white;
+	box-shadow: 0 0 4px rgba(0, 0, 0, 0.25);
+}
+.field-name-field-ofed-press-docs,
+.field-name-field-ofed-press-contact-person,
+.field-name-field-ofed-press-contact,
+.field-name-field-ofed-press-links,
+.field-name-field-ofed-press-video				{
+	border: 1px solid #E1DED7;
+	background: #F4F4F3;
+	padding: 10px 10px 10px 10px;
+	margin-bottom:10px;
+}
+
+.field-name-field-ofed-press-docs .label-above,
+.field-name-field-ofed-press-contact-person .label-above,
+.field-name-field-ofed-press-contact .label-above,
+.field-name-field-ofed-press-links .label-above,
+.field-name-field-ofed-press-video .label-above	{
+	text-decoration: underline;
+	font-weight: 600;
+	font-size: 1.1em;
+	padding-bottom: 10px;
+	display:block;
+}
+.pane-ofed-press								{
+	background: #f4f4f3;
+	border-top: 3px solid #ff7300;
+}
+.field-name-field-ofed-press-docs								{
+	padding-bottom:0px;
+}
+.field-name-field-ofed-press-links a							{
+	display: block;	
+	padding: 5px 0;
+}
+.field-name-field-ofed-press-docs .view-mode-references 		{
+	padding: 0;
+}
+.view-display-id-ofed_press_block_column .views-row				{
+	float:left;    
+	width:33%;
+}
+.view-display-id-ofed_press_block_column:before,
+.view-display-id-ofed_press_block_column:after					{
+  display: table;
+  content: " ";
+  line-height: 0;
+  clear: both;
+}
+@media 	handheld,											/* Only Opera Mobile is compliant for the moment*/
+		only screen and (max-device-width:767px),			/* Only for smartphone screen */
+		only screen and (max-width:767px)
+{
+	.view-display-id-ofed_news_block_column .views-row	{
+		display: block;
+		float: none;
+		width: auto;
+	}
+}

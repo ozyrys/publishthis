@@ -1,0 +1,150 @@
+name = "OpenFed"
+description = "Select this profile to install the OpenFed distribution."
+core = 7.x
+
+; Requirements.
+; -------------
+  php_memory_limit = 320M
+
+; Includes.
+; ---------
+  files[] = openfed.profile
+
+; Core module dependencies.
+; -------------------------
+  dependencies[] = block
+  dependencies[] = contextual
+  dependencies[] = dblog
+  dependencies[] = file
+  dependencies[] = image
+  dependencies[] = list
+  dependencies[] = locale
+  dependencies[] = menu
+  dependencies[] = number
+  dependencies[] = options
+  dependencies[] = path
+  dependencies[] = rdf
+  dependencies[] = syslog
+  dependencies[] = taxonomy
+  dependencies[] = text
+  dependencies[] = translation
+
+; Contrib module dependencies.
+; ----------------------------
+  dependencies[] = admin_language
+  dependencies[] = admin_menu
+  dependencies[] = admin_menu_content_languages
+  dependencies[] = admin_menu_toolbar
+  dependencies[] = admin_views
+  dependencies[] = ckeditor
+  dependencies[] = ckeditor_link
+  dependencies[] = ctools
+  dependencies[] = date
+  dependencies[] = date_all_day
+  dependencies[] = date_api
+  dependencies[] = date_popup
+  dependencies[] = date_views
+  dependencies[] = diff
+  dependencies[] = ds
+  dependencies[] = ds_extras
+  dependencies[] = ds_format
+  dependencies[] = ds_forms
+  dependencies[] = easy_breadcrumb
+  dependencies[] = elements
+  dependencies[] = email
+  dependencies[] = entity
+  dependencies[] = entity_token
+  dependencies[] = entityreference
+  dependencies[] = extlink
+  dependencies[] = features
+  dependencies[] = features_override
+  dependencies[] = field_group
+  dependencies[] = file_entity
+  dependencies[] = flag
+  dependencies[] = globalredirect
+  dependencies[] = hierarchical_select
+  dependencies[] = hs_menu
+  dependencies[] = hs_taxonomy
+  dependencies[] = html5_tools
+  dependencies[] = i18n
+  dependencies[] = i18n_block
+  dependencies[] = i18n_field
+  dependencies[] = i18n_node
+  dependencies[] = i18n_path
+  dependencies[] = i18n_redirect
+  dependencies[] = i18n_select
+  dependencies[] = i18n_string
+  dependencies[] = i18n_taxonomy
+  dependencies[] = i18n_translation
+  dependencies[] = i18n_user
+  dependencies[] = i18n_variable
+  dependencies[] = imagecache_actions
+  dependencies[] = imce
+  dependencies[] = imce_mkdir
+  dependencies[] = jquery_plugin
+  dependencies[] = libraries
+  dependencies[] = link
+  dependencies[] = language_cookie
+  dependencies[] = logintoboggan
+  dependencies[] = logintoboggan_variable
+  dependencies[] = media
+  dependencies[] = media_internet
+  dependencies[] = menu_attributes
+  dependencies[] = menu_block
+  dependencies[] = menu_dam
+  dependencies[] = menu_firstchild
+  dependencies[] = menu_link_weight
+  dependencies[] = menu_position
+  dependencies[] = metatag
+  dependencies[] = metatag_opengraph
+  dependencies[] = metatag_twitter_cards
+  dependencies[] = navigation404
+  dependencies[] = node_edit_redirect
+  dependencies[] = override_node_options
+  dependencies[] = partial_date
+  dependencies[] = pathauto
+  dependencies[] = redirect
+  dependencies[] = role_delegation
+  dependencies[] = rules
+  dependencies[] = rules_scheduler
+  dependencies[] = scheduler
+  dependencies[] = seckit
+  dependencies[] = security_review
+  dependencies[] = sharethis
+  dependencies[] = special_menu_items
+  dependencies[] = strongarm
+  dependencies[] = table_altrow
+  dependencies[] = text_resize
+  dependencies[] = token
+  dependencies[] = translation_helpers
+  dependencies[] = translation_table
+  dependencies[] = transliteration
+  dependencies[] = username_enumeration_prevention
+  dependencies[] = variable
+  dependencies[] = variable_views
+  dependencies[] = view_unpublished
+  dependencies[] = views
+  dependencies[] = views_bulk_operations
+  dependencies[] = webform
+  dependencies[] = xmlsitemap
+  dependencies[] = xmlsitemap_engines
+  dependencies[] = xmlsitemap_i18n
+  dependencies[] = xmlsitemap_menu
+  dependencies[] = xmlsitemap_node
+
+; OpenFed module dependencies.
+; ----------------------------
+
+  dependencies[] = ofed_admin_views_language
+  dependencies[] = ofed_download
+  dependencies[] = ofed_page
+  dependencies[] = ofed_vmcd
+  dependencies[] = ofed_switcher
+
+
+; Information added by Drupal.org packaging script on 2017-08-17
+version = "7.x-2.11"
+core = "7.x"
+project = "openfed"
+datestamp = "1502965821"
+

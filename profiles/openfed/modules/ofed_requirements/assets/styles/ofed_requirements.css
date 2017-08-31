@@ -1,0 +1,18 @@
+.page-admin-openfed-requirements fieldset.check-succeed legend{
+  background: transparent url("/profiles/openfed/themes/cms_theme/assets/icones/message-24-ok.png") no-repeat scroll right 8px;
+}
+.page-admin-openfed-requirements fieldset.check-failed legend{
+  background: transparent url("/profiles/openfed/themes/cms_theme/assets/icones/message-24-error.png") no-repeat scroll right 8px;
+}
+.page-admin-openfed-requirements fieldset .fieldset-wrapper {
+   padding: 0 0 10px 0;
+}
+.page-admin-openfed-requirements fieldset .form-item label {
+  font-size: 13px !important;
+}
+.page-admin-openfed-requirements fieldset ul.check-errors li{
+  color: #8C2E0B;
+}
+.page-admin-openfed-requirements fieldset ul.check-errors li:first-child{
+  font-weight: bold;
+}

@@ -1,0 +1,190 @@
+<?php
+
+/**
+ * @file
+ * Module needed to manage x with the Openfed distribution.
+ */
+include_once 'ofed_banner.features.inc';
+include_once 'includes/ofed_banner.blocks.inc';
+
+/**
+ * Implements hook_menu().
+ */
+function ofed_banner_menu() {
+  $items = array();
+
+  $items['banner-counter/%'] = array(
+    'title' => 'Banner click count',
+    'page callback' => '_ofed_banner_counter',
+    'page arguments' => array(1),
+    'access callback' => 'user_access',
+    'access arguments' => array('access content'),
+    'file' => 'includes/ofed_banner.misc.inc',
+    'type' => MENU_CALLBACK,
+  );
+
+  return $items;
+}
+
+/**
+ * Implements hook_theme_registry_alter().
+ */
+function ofed_banner_theme_registry_alter(&$theme_registry) {
+  $mod_path = drupal_get_path('module', 'ofed_banner');
+  $theme_registry_copy = $theme_registry; // Munge on a copy
+  _theme_process_registry($theme_registry_copy, 'phptemplate', 'theme_engine', 'pow', $mod_path);
+  $theme_registry += array_diff_key($theme_registry_copy, $theme_registry);
+  $hooks = array('node');
+  foreach ($hooks as $h) {
+    _ofed_banner_insert_after_first_element($theme_registry[$h]['theme paths'], $mod_path);
+  }
+}
+
+/**
+ * Helper function for re-ordering arrays (needed by theme_registry_alter).
+ */
+function _ofed_banner_insert_after_first_element(&$a, $element) {
+  if (is_array($a)) {
+    $first_element = array_shift($a);
+    array_unshift($a, $first_element, $element);
+  }
+}
+
+/**
+ * Implements hook_preprocess_page().
+ */
+function ofed_banner_preprocess_page() {
+  drupal_add_js(drupal_get_path('module', 'ofed_banner') . '/assets/scripts/ofed_banner.js');
+  drupal_add_css(drupal_get_path('module', 'ofed_banner') . '/assets/styles/ofed_banner.css');
+}
+
+/**
+ * Implements hook_node_update().
+ * @param type $node
+ */
+function ofed_banner_node_insert($node) {
+  if ($node->type == 'ofed_banner') {
+    // Set the language for the related block.
+    db_insert('i18n_block_language')
+    ->fields(array(
+      'module' => 'ofed_banner',
+      'delta' => 'ofed_banner_' . $node->nid,
+      'language' => $node->language,
+    ))->execute();
+  }
+}
+
+/**
+ * Implements hook_node_update().
+ * @param type $node
+ */
+function ofed_banner_node_update($node) {
+  if ($node->type == 'ofed_banner' && $node->status == FALSE) {
+    // Disable block.
+    $delta = 'ofed_banner_' . $node->nid;
+    db_update('block')
+      ->fields(array('status' => 0))
+      ->condition('delta', $delta)
+      ->execute();
+  }
+}
+
+/**
+ * Implements hook_node_delete().
+ * @param type $node
+ */
+function ofed_banner_node_delete($node) {
+
+  if ($node->type == 'ofed_banner') {
+    $delta = 'ofed_banner_' . $node->nid;
+    // Delete block.
+    db_delete('block')
+      ->condition('delta', $delta)
+      ->condition('module', $node->type)
+      ->execute();
+    // Delete block language.
+    db_delete('i18n_block_language')
+      ->condition('delta', $delta)
+      ->condition('module', $node->type)
+      ->execute();
+  }
+}
+
+/**
+ * Implements hook_block_info().
+ */
+function ofed_banner_block_info() {
+  // Initialize.
+  $blocks = array();
+
+  // Get all nodes if type is ofed_banner and published.
+  $result = db_select('node', 'n')
+    ->fields('n', array('nid', 'title', 'language'))
+    ->condition('type', 'ofed_banner')
+    ->condition('status', '1')
+    ->execute();
+
+  if ($result->rowCount() > 0) {
+
+    while ($record = $result->fetchAssoc()) {
+      // Create block.
+      $node = node_load($record['nid']);
+      $type = str_replace('_', ' ', $node->field_ofed_banner_type['und'][0]['value']);
+      $blocks['ofed_banner_' . $node->nid] = array(
+        'info' => t('Banner "!type" (!language): !title', array('!title' => $record['title'], '!type' => $type, '!language' => strtoupper($record['language']))),
+        'cache' => DRUPAL_NO_CACHE,
+      );
+    }
+  }
+
+  // Return.
+  return $blocks;
+}
+
+/**
+ * Implements hook_block_view().
+ */
+function ofed_banner_block_view($delta = '') {
+  // Initialize.
+  $block = array();
+
+  if (preg_match('#^ofed_banner#', $delta)) {
+    $nid = str_replace('ofed_banner_', '', $delta);
+    if ($nid && is_numeric($nid)) {
+      // Define the block properties.
+      $block['subject'] = '';
+      $block['content'] = _ofed_banner_block_render_banner($nid);
+    }
+  }
+
+  // Return.
+  return $block;
+}
+
+/**
+ * Implements hook_form_alter().
+ * @param type $node
+ */
+function ofed_banner_form_alter(&$form, &$form_state, $form_id) {
+  // Set click to 0 in case of new content.
+  if ($form_id == 'ofed_banner_node_form') {
+    // Only for new content.
+    $arg = arg(1);
+    if (isset($arg) && $arg == 'add') {
+      $form['#node']->field_ofed_banner_click_count['und'][0]['value'] = 0;
+      $form['field_ofed_banner_click_count']['und'][0]['value']['#default_value'] = 0;
+    }
+  }
+}
+
+/**
+ * Implements hook_ofed_user_default_permissions().
+ */
+function ofed_banner_ofed_user_default_permissions() {
+  // Function used by the ofed_rerquirements module. The hook defined in the
+  // required file hereunder is not available otherwise.
+  require_once drupal_get_path('module', 'ofed_banner') . '/ofed_banner.features.user_permission.inc';
+
+  return ofed_banner_user_default_permissions();
+}
+

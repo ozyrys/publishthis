@@ -1,0 +1,438 @@
+<?php
+
+/**
+ * Implements hook_install().
+ */
+function ofed_banner_install() {
+  // Include ds settings.
+  $file = drupal_get_path('module', 'ofed_banner') . '/install/_ofed_banner.ds.inc';
+  if (file_exists($file)) {
+    // Include it.
+    include_once 'install/_ofed_banner.ds.inc';
+
+    // Install ds customs fields.
+    if (function_exists('ofed_banner_ds_custom_fields_info')) {
+      $fields = ofed_banner_ds_custom_fields_info();
+      foreach ($fields as $id => $field) {
+        // Remove one key.
+        if (isset($field->api_version)) {
+          unset($field->api_version);
+        }
+        // Serialize the entities.
+        $field->entities = serialize($field->entities);
+        // Serialize the ui_limit.
+        $field->ui_limit = serialize($field->ui_limit);
+        // Serialize the properties.
+        $field->properties = serialize($field->properties);
+
+        // Cast variable like an array.
+        $field = (array) $field;
+
+        // Save in database.
+        db_insert('ds_fields')->fields($field)->execute();
+      }
+    }
+
+    // Install ds fields settings.
+    if (function_exists('ofed_banner_ds_field_settings_info')) {
+      $fields = ofed_banner_ds_field_settings_info();
+      foreach ($fields as $id => $field) {
+        // Remove one key.
+        if (isset($field->api_version)) {
+          unset($field->api_version);
+        }
+        // Serialize the settings.
+        $field->settings = serialize($field->settings);
+
+        // Cast variable like an array.
+        $field = (array) $field;
+
+        // Save in database.
+        db_insert('ds_field_settings')->fields($field)->execute();
+      }
+    }
+
+    // Install ds layouts settings.
+    if (function_exists('ofed_banner_ds_layout_settings_info')) {
+      $layouts = ofed_banner_ds_layout_settings_info();
+      foreach ($layouts as $id => $layout) {
+        // Remove one key.
+        if (isset($layout->api_version)) {
+          unset($layout->api_version);
+        }
+        // Serialize the settings.
+        $layout->settings = serialize($layout->settings);
+
+        // Cast variable like an array.
+        $layout = (array) $layout;
+
+        // Save in database.
+        db_insert('ds_layout_settings')->fields($layout)->execute();
+      }
+    }
+  }
+
+  // Paths alias management.
+  $path_source = 'banners';
+  // Set path alias whitelist.
+  $path_alias_whitelist = variable_get('path_alias_whitelist', array());
+  if (!array_key_exists($path_source, $path_alias_whitelist)) {
+    $path_alias_whitelist[$path_source] = TRUE;
+    variable_set('path_alias_whitelist', $path_alias_whitelist);
+  }
+
+  // Set path alias for each languages.
+  $languages = language_list('enabled');
+  foreach ($languages as $language) {
+    // FR.
+    if (isset($language['fr'])) {
+      $path = array(
+        'source'   => $path_source,
+        'alias'    => 'bannieres',
+        'language' => 'fr',
+      );
+      db_insert('url_alias')->fields($path)->execute();
+    }
+
+    // NL.
+    if (isset($language['nl'])) {
+      $path = array(
+        'source'   => $path_source,
+        'alias'    => 'banners',
+        'language' => 'nl',
+      );
+      db_insert('url_alias')->fields($path)->execute();
+    }
+
+    // DE.
+    if (isset($language['de'])) {
+      $path = array(
+        'source'   => $path_source,
+        'alias'    => 'banner',
+        'language' => 'de',
+      );
+      db_insert('url_alias')->fields($path)->execute();
+    }
+  }
+
+  // Add the settings to set the conditional fields.
+  _ofed_banner_install_conditional_fields();
+}
+
+/**
+ * Install the conditional fields settings.
+ *
+ * Assumes FCS 2.x is installed (as required in the .info file).
+ */
+function _ofed_banner_install_conditional_fields() {
+  // Export of 1.x fields.
+  $fields = array(
+    // Leaderboard.
+    (object) array(
+      'field_name' => 'field_ofed_banner_img_leadboard',
+      'control_field' => 'field_ofed_banner_type',
+      'state' => 'visible',
+      'bundle' => 'ofed_banner',
+      'trigger_values' => 'a:1:{s:9:"leadboard";s:9:"leadboard";}',
+      'condition_type' => 'or'
+    ),
+    (object) array(
+      'field_name' => 'field_ofed_banner_img_leadboard',
+      'control_field' => 'field_ofed_banner_type',
+      'state' => 'required',
+      'bundle' => 'ofed_banner',
+      'trigger_values' => 'a:1:{s:9:"leadboard";s:9:"leadboard";}',
+      'condition_type' => 'or'
+    ),
+
+    // Full.
+    (object) array(
+      'field_name' => 'field_ofed_banner_img_full',
+      'control_field' => 'field_ofed_banner_type',
+      'state' => 'visible',
+      'bundle' => 'ofed_banner',
+      'trigger_values' => 'a:1:{s:4:"full";s:4:"full";}',
+      'condition_type' => 'or'
+    ),
+    (object) array(
+      'field_name' => 'field_ofed_banner_img_full',
+      'control_field' => 'field_ofed_banner_type',
+      'state' => 'required',
+      'bundle' => 'ofed_banner',
+      'trigger_values' => 'a:1:{s:4:"full";s:4:"full";}',
+      'condition_type' => 'or'
+    ),
+
+    // Skyscraper.
+    (object) array(
+      'field_name' => 'field_ofed_banner_img_skyscraper',
+      'control_field' => 'field_ofed_banner_type',
+      'state' => 'visible',
+      'bundle' => 'ofed_banner',
+      'trigger_values' => 'a:1:{s:10:"skyscraper";s:10:"skyscraper";}',
+      'condition_type' => 'or'
+    ),
+    (object) array(
+      'field_name' => 'field_ofed_banner_img_skyscraper',
+      'control_field' => 'field_ofed_banner_type',
+      'state' => 'required',
+      'bundle' => 'ofed_banner',
+      'trigger_values' => 'a:1:{s:10:"skyscraper";s:10:"skyscraper";}',
+      'condition_type' => 'or'
+    ),
+
+    // Medium rectangle.
+    (object) array(
+      'field_name' => 'field_ofed_banner_img_mrectangle',
+      'control_field' => 'field_ofed_banner_type',
+      'state' => 'visible',
+      'bundle' => 'ofed_banner',
+      'trigger_values' => 'a:1:{s:10:"mrectangle";s:10:"mrectangle";}',
+      'condition_type' => 'or'
+    ),
+    (object) array(
+      'field_name' => 'field_ofed_banner_img_mrectangle',
+      'control_field' => 'field_ofed_banner_type',
+      'state' => 'required',
+      'bundle' => 'ofed_banner',
+      'trigger_values' => 'a:1:{s:10:"mrectangle";s:10:"mrectangle";}',
+      'condition_type' => 'or'
+    ),
+
+    // Square rectangle.
+    (object) array(
+      'field_name' => 'field_ofed_banner_img_srectangle',
+      'control_field' => 'field_ofed_banner_type',
+      'state' => 'visible',
+      'bundle' => 'ofed_banner',
+      'trigger_values' => 'a:1:{s:10:"srectangle";s:10:"srectangle";}',
+      'condition_type' => 'or'
+    ),
+    (object) array(
+      'field_name' => 'field_ofed_banner_img_srectangle',
+      'control_field' => 'field_ofed_banner_type',
+      'state' => 'required',
+      'bundle' => 'ofed_banner',
+      'trigger_values' => 'a:1:{s:10:"srectangle";s:10:"srectangle";}',
+      'condition_type' => 'or'
+    ),
+
+    // Button.
+    (object) array(
+      'field_name' => 'field_ofed_banner_img_button',
+      'control_field' => 'field_ofed_banner_type',
+      'state' => 'visible',
+      'bundle' => 'ofed_banner',
+      'trigger_values' => 'a:1:{s:6:"button";s:6:"button";}',
+      'condition_type' => 'or'
+    ),
+    (object) array(
+      'field_name' => 'field_ofed_banner_img_button',
+      'control_field' => 'field_ofed_banner_type',
+      'state' => 'required',
+      'bundle' => 'ofed_banner',
+      'trigger_values' => 'a:1:{s:6:"button";s:6:"button";}',
+      'condition_type' => 'or'
+    )
+  );
+  _ofed_banner_migrate_fcs_fields($fields);
+}
+
+/**
+ * Installs field_conditional_state 1.x fields.
+ *
+ * @see field_conditional_state_update_7200
+ */
+function _ofed_banner_migrate_fcs_fields($fields) {
+  foreach ($fields as $field) {
+    // In case FCS was used for a non-node we have to use the right entity type
+    // so we have to search for the bundle within the existing entity types
+    // if more than one entity type has a bundle with the same name
+    // we can't decide which one is the right bundle
+    //(so we'll simply take the first found entity type).
+    $entity_type = 'node';
+    foreach ($bundle_data as $type => $bundles) {
+      if (isset($bundles[$field->bundle])){
+        $entity_type = $type;
+        break;
+      }
+    }
+
+    $group_id = db_insert('field_conditional_states_group')->fields(array(
+      'state' => $field->state,
+      'entity_type' => $entity_type,
+      'bundle' => $field->bundle,
+      'field_name' => $field->field_name,
+      'type' => $field->condition_type
+    ))->execute();
+
+    $control_field_info = field_info_field($field->control_field);
+
+    $trigger_values = array_keys(unserialize($field->trigger_values));
+    foreach ($trigger_values as $trigger_value) {
+      $trigger_state = 'value';
+      if ($control_field_info['type'] == 'list_boolean') {
+        $trigger_state = ($trigger_value ? 'checked' : 'unchecked');
+      }
+
+      db_insert('field_conditional_state')->fields(array(
+        'group_id' => $group_id,
+        'control_field' => $field->control_field,
+        'trigger_state' => $trigger_state,
+        'trigger_value' => $trigger_value,
+      ))->execute();
+    }
+  }
+}
+
+/**
+ * Create the missing path aliases for each language.
+ */
+function ofed_banner_update_7100() {
+  $module = db_select('system', 's')
+    ->fields('s')
+    ->condition('name', 'ofed_feature_banner')
+    ->execute()
+    ->fetchObject();
+
+  if (!empty($module) && $module->schema_version < 7100) {
+    // Paths alias management.
+    // Delete wrong alias.
+    db_delete('url_alias')->condition('source', 'banner')->condition('alias', 'banner')->condition('language', 'fr')->execute();
+    db_delete('url_alias')->condition('source', 'banner')->condition('alias', 'banner')->condition('language', 'nl')->execute();
+
+    // Add newest alias.
+    $path_source = 'banners';
+    // Set path alias whitelist.
+    $path_alias_whitelist = variable_get('path_alias_whitelist', array());
+    if (!array_key_exists($path_source, $path_alias_whitelist)) {
+      $path_alias_whitelist[$path_source] = TRUE;
+      variable_set('path_alias_whitelist', $path_alias_whitelist);
+    }
+
+    // Set path alias for each languages.
+    $languages = language_list('enabled');
+    foreach ($languages as $language) {
+      // FR.
+      if (isset($language['fr']) && !drupal_lookup_path('alias', $path_source, 'fr')) {
+        $path = array(
+            'source'   => $path_source,
+            'alias'    => 'bannieres',
+            'language' => 'fr',
+        );
+        db_insert('url_alias')->fields($path)->execute();
+      }
+
+      // NL.
+      if (isset($language['nl']) && !drupal_lookup_path('alias', $path_source, 'nl')) {
+        $path = array(
+            'source'   => $path_source,
+            'alias'    => 'banners',
+            'language' => 'nl',
+        );
+        db_insert('url_alias')->fields($path)->execute();
+      }
+    }
+  }
+}
+
+/**
+ * Disable unused view modes.
+ */
+function ofed_banner_update_7101() {
+  $module = db_select('system', 's')
+    ->fields('s')
+    ->condition('name', 'ofed_feature_banner')
+    ->execute()
+    ->fetchObject();
+
+  if (!empty($module) && $module->schema_version < 7101) {
+    // Set the bundle name.
+    $bundle = 'ofed_banner';
+    // Set what display will be removed.
+    $displays_to_delete = array('search_index', 'block_info');
+
+    // Delete display suite layout settings.
+    foreach ($displays_to_delete as $display_to_delete) {
+      db_delete('ds_layout_settings')->condition('id', 'node|' . $bundle . '|' . $display_to_delete)->execute();
+    }
+    // Delete display suite field settings.
+    foreach ($displays_to_delete as $display_to_delete) {
+      db_delete('ds_field_settings')->condition('id', 'node|' . $bundle . '|' . $display_to_delete)->execute();
+    }
+
+    // Update field instance.
+    // Get field config instance for each field used by the content type.
+    // Select each field instance for this bundle.
+    $fields = db_select('field_config_instance', 'fci')->fields('fci')->condition('bundle', $bundle)->execute()->fetchAll();
+    foreach ($fields as $field) {
+      // Get data.
+      $data = unserialize($field->data);
+      // Remove displays.
+      foreach ($displays_to_delete as $display_to_delete) {
+        if (isset($data['display'][$display_to_delete])) {
+          unset($data['display'][$display_to_delete]);
+        }
+      }
+      // Set data.
+      $field->data = serialize($data);
+      // Update record.
+      db_update('field_config_instance')->fields(array('data' => $field->data))->condition('id', $field->id)->execute();
+    }
+
+    // Update bundle settings variable.
+    // Get variable content.
+    $bundle_settings_node = variable_get('field_bundle_settings_node__' . $bundle, array());
+    if (!empty($bundle_settings_node)) {
+      // Disable displays.
+      foreach ($displays_to_delete as $display_to_delete) {
+        if (isset($bundle_settings_node['view_modes'][$display_to_delete])) {
+          if ($display_to_delete == 'block_info') {
+            unset($bundle_settings_node['view_modes'][$display_to_delete]);
+            if (isset($bundle_settings_node['extra_fields']['display']['language'][$display_to_delete])) {
+              unset($bundle_settings_node['extra_fields']['display']['language'][$display_to_delete]);
+            }
+          }
+          else {
+            $bundle_settings_node['view_modes'][$display_to_delete] = array('custom_settings' => FALSE);
+          }
+        }
+      }
+      // Set variable content.
+      variable_set('field_bundle_settings_node__' . $bundle, $bundle_settings_node);
+    }
+  }
+}
+
+/**
+ * Create the missing paths alias for german language.
+ */
+function ofed_banner_update_7102() {
+  $module = db_select('system', 's')
+    ->fields('s')
+    ->condition('name', 'ofed_feature_banner')
+    ->execute()
+    ->fetchObject();
+
+  if (!empty($module) && $module->schema_version < 7102) {
+    // Paths alias management.
+    $path_source = 'banners';
+    // Set path alias whitelist.
+    $path_alias_whitelist = variable_get('path_alias_whitelist', array());
+    if (!array_key_exists($path_source, $path_alias_whitelist)) {
+      $path_alias_whitelist[$path_source] = TRUE;
+      variable_set('path_alias_whitelist', $path_alias_whitelist);
+    }
+
+    // Set path alias for german language.
+    $languages = language_list('enabled');
+    if (isset($languages['de']) && !drupal_lookup_path('alias', $path_source, 'de')) {
+      $path = array(
+        'source'   => $path_source,
+        'alias'    => 'banner',
+        'language' => 'de',
+      );
+      db_insert('url_alias')->fields($path)->execute();
+    }
+  }
+}

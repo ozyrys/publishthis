@@ -1,0 +1,17 @@
+name = Apache Solr search attachments
+description = Search file attachments with Solr
+dependencies[] = apachesolr
+package = Search Toolkit
+core = 7.x
+configure = admin/config/search/apachesolr/attachments
+
+files[] = tests/apachesolr_attachments-field_collection.test
+
+test_dependencies[] = apachesolr
+test_dependencies[] = apachesolr_attachments
+test_dependencies[] = field_collection
+
+; Information added by drush on 2016-10-21
+version = "7.x-1.4+3-dev"
+project = "apachesolr_attachments"
+datestamp = "1477011606"

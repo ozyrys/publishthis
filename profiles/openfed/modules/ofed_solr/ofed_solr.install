@@ -1,0 +1,14 @@
+<?php
+/**
+ * Implements hook_install().
+ */
+function ofed_solr_install() {
+  variable_set('ds_search_file_render', 1);
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function ofed_solr_uninstall() {
+  variable_del('ds_search_file_render');
+}

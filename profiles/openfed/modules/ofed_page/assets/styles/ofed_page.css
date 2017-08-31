@@ -1,0 +1,65 @@
+.pane-ofed-page								{
+	background: #f4f4f3;
+	border-top: 3px solid #ff7300;
+}
+.field-name-field-ofed-page-pubdate,
+.field-name-field-ofed-page-update			{
+	font-size: 0.85em;
+	color: #B0AEA4;
+}
+.field-name-field-ofed-page-thumb			{
+	padding: 5px 10px 5px 0;
+	color: white; /*  Bug sous chrome  - le border de l'image est orange 	*/
+}
+.field-name-field-ofed-page-thumb img		{
+	border: 3px solid white;
+	box-shadow: 0 0 4px rgba(0, 0, 0, 0.25);
+}
+.field-name-field-ofed-page-docs,
+.field-name-field-ofed-page-video			{
+	border: 1px solid #E1DED7;
+	background: #F4F4F3;
+	padding: 10px 10px 10px 10px;
+	margin-bottom:10px;
+}
+.field-name-field-ofed-page-docs .label-above,
+.field-name-field-ofed-page-video .label-above		{
+	text-decoration: underline;
+}
+.field-name-field-ofed-page-docs					{
+	padding-bottom:0px;
+}
+.field-name-field-ofed-page-docs .label-above,
+.field-name-field-ofed-page-video .label-above		{
+	font-weight: 600;
+	font-size: 1.1em;
+	padding-bottom: 10px;
+	display:block;
+}
+.field-name-field-ofed-page-docs .view-mode-references	a		{
+    padding-bottom: 5px;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+@media 	handheld,											/* Only Opera Mobile is compliant for the moment*/
+		only screen and (max-device-width:767px),			/* Only for smartphone screen */
+		only screen and (max-width:767px)
+{
+	.view-display-id-ofed_page_block_column .views-row	{
+		display: block;
+		float: none;
+		width: auto;
+	}
+}

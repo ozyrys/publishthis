@@ -1,0 +1,28 @@
+/* Stylesheet for print */
+
+.region-header, .block-menu-block, .block-locale, .element-focusable, #breadcrumb, .block-menu, .sponsor, .container-footer figure {
+display: none;
+}
+
+body {
+font-family: Arial;
+font-size: 0.9em;
+line-height: 1.5em;
+}
+
+[role="banner"] {
+background-color: silver;
+padding: 0px 0 10px 0;
+}
+
+#ofed-federal-header-wrapper {
+background: white;
+}
+
+[role="banner"] .site-info>a.brand {
+display: none;
+}
+
+[role="banner"] .site-info>button.toggle-button {
+display: none;
+} 

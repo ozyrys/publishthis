@@ -1,0 +1,51 @@
+<?php
+
+/**
+ * @file
+ * Administration menu - Content languages module.
+ */
+
+/**
+ * Implements hook_admin_menu_output_alter().
+ */
+function admin_menu_content_languages_admin_menu_output_alter(&$content) {
+  if (isset($content['menu']['admin/content']['node/add'])) {
+    $target = &$content['menu']['admin/content']['node/add'];
+  }
+  elseif (isset($content['menu']['node/add'])) {
+    $target = &$content['menu']['node/add'];
+  }
+  if (isset($target) && (drupal_multilingual() || module_exists('locale'))) {
+    // Get available languages.
+    $languages = language_list('enabled');
+    // Get all children of the "node/add" element.
+    $children = array_intersect_key($target, array_flip(element_children($target)));
+    foreach ($children as $key => $child) {
+      // Derive the content type's machine name from the array key.
+      $content_type_machine_name = str_replace('node/add/', '', $key);
+      $content_type_machine_name = str_replace('-', '_', $content_type_machine_name);
+      // Check if the "Set current language as default for new content."
+      // checkbox in the multilingual settings for this content type is checked.
+      $content_type_settings = variable_get('i18n_node_options_' . $content_type_machine_name, FALSE);
+      if (!empty($content_type_settings) && in_array('current', $content_type_settings)) {
+        $weight = 0;
+        // Loop through the available languages.
+        foreach ($languages[1] as $langcode => $language) {
+          // Copy the parent element to the child.
+          $target[$key][$langcode] = $child;
+          // Override the language of the link.
+          $target[$key][$langcode]['#options'] = array(
+            'language' => $language,
+          );
+          // Override the title of the link.
+          $target[$key][$langcode]['#title'] = t('@content_type (@language)', array(
+            '@content_type' => $child['#title'],
+            '@language' => $language->native,
+          ));
+          $target[$key][$langcode]['#weight'] = $weight;
+          $weight++;
+        }
+      }
+    }
+  }
+}

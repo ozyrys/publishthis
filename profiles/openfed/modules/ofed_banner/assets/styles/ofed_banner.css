@@ -1,0 +1,28 @@
+/*		
+		BANNER
+*/
+
+.banner														{
+	margin: 0 auto;
+	text-align: center;
+	border: 1px solid #E1DED7;
+	background: #F4F4F3;
+	padding: 10px;
+	margin: 10px 0;
+}
+header .banner,
+top .banner,
+bottom .banner,
+footer .banner												{
+	background : transparent;
+	border: none;
+}
+.banner.banner-button 										{
+	float: left;
+	margin: 0 10px;
+	padding: 10px 1.2em;
+}
+.aside-right .banner.banner-button,
+.aside-left .banner.banner-button 							{
+	float: none;
+}

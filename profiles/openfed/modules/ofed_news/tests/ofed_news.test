@@ -1,0 +1,76 @@
+<?php
+
+/**
+ * @file
+ * Unit tests for OpenFed news module.
+ */
+class OfedNewsTestCase extends DrupalWebTestCase {
+
+  /**
+   * Profile.
+   * @var string
+   */
+  protected $profile = 'openfed';
+
+  /**
+   * User.
+   * @var object
+   */
+  protected $_admin_user;
+
+  /**
+   * User.
+   * @var object
+   */
+  protected $_public_files_directory;
+
+  /**
+   * Set test info.
+   * @access public
+   * @param  none
+   * @return void
+   */
+  public static function getInfo() {
+    return array(
+      'name' => 'News',
+      'description' => 'Create a node in every language, edit it and delete it.',
+      'group' => '-OpenFed',
+    );
+  }
+
+  /**
+   * Set up test.
+   * @access public
+   * @param  none
+   * @return void
+   */
+  public function setUp() {
+    // Call parent method.
+    parent::setUp( array('ofed_news') ); // Enable the ofed_news module
+
+    // Create and set permission to user.
+    $this->_admin_user = $this->drupalCreateUser(
+      array_keys(module_invoke_all('permission'))
+    );
+
+    // Login user
+    $this->drupalLogin($this->_admin_user);
+    // Ensure that the message is properly displayed to the logged in user
+    $this->assertText(t('Log in successful for @name', array('@name' => $this->_admin_user->name)));
+  }
+
+
+  function testNodeCreation() {
+    // Build node form array and fill in some values
+    $node = array();
+    $node['title'] = $this->randomName(8) . ' uid = ' . $this->_admin_user->uid;
+    $node['language'] = 'en';
+    $node["field_ofed_news_body[und][0][value]"] = 'Body value : ' . $this->randomName(16);
+    // "Submit" the form by posting the values to the node/add page
+    $this->drupalPost('node/add/ofed-news', $node, t('Save'));
+    // Checks that the message telling that the content has been created is properly displayed
+    $this->assertText(t('News @title has been created', array('@title' => $node['title'])));
+    // Checks that the body is displayed on the page
+    $this->assertText('Body value : ');
+  }
+}

@@ -1,0 +1,431 @@
+/* Bug ie7 overwriting property from system menu.css */
+ul li.leaf {
+  list-style-image: none;
+}
+
+/* Taille de texte globale : http://www.alsacreations.com/article/lire/563-gerer-la-taille-du-texte-avec-les-em.html */
+html {
+  /* S'adapte par rapport à la configuration du navigateur */
+  font-size: 100%;
+}
+
+body {
+  /* Correspond à environ 13px si le navigateur est règlé sur police moyenne */
+  font: normal .8125em/1.5732em 'Open Sans', sans-serif;
+  color: #32312e;
+}
+
+ol,
+ul {
+  list-style: none;
+  list-style-image: none;
+  list-style-type: none;
+}
+
+blockquote,
+q {
+  quotes: none;
+}
+
+table {
+  border-collapse: collapse;
+  border-spacing: 0;
+}
+
+em {
+  font-style: italic;
+}
+
+b,
+strong {
+  font-weight: bold;
+}
+
+hr {
+  border: none;
+  background: #ccc;
+}
+
+p {
+  margin-bottom: 10px;
+  line-height: 1.65em;
+}
+
+a,
+a:visited,
+a:link {
+  color: #ff7300;
+}
+
+a:hover,
+a:focus {
+  color: #622101;
+}
+
+label {
+  display: block;
+  padding: 5px 0;
+}
+
+.label-inline {
+  display: inline;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  margin: 10px 0;
+  font-family: inherit;
+  font-weight: bold;
+  line-height: 1;
+  color: inherit;
+  text-rendering: optimizelegibility;
+}
+
+h1 {
+  font-size: 36px;
+  line-height: 40px;
+}
+
+h2 {
+  font-size: 30px;
+  line-height: 40px;
+}
+
+h3 {
+  font-size: 24px;
+  line-height: 40px;
+}
+
+h4 {
+  font-size: 18px;
+  line-height: 20px;
+}
+
+h5 {
+  font-size: 14px;
+  line-height: 20px;
+}
+
+h6 {
+  font-size: 13px;
+  line-height: 20px;
+}
+
+h1 {
+  font-size: 3em;
+}
+
+h1 {
+  font-weight: 300;
+  margin: 0 0 10px 0;
+  color: #ff7300;
+}
+
+h2 {
+  font-weight: 300;
+  margin: 0 0 10px 0;
+  color: #ff7300;
+}
+
+h3 {
+  font-weight: 600;
+  margin: 0 0 10px 0;
+  color: #32324b;
+}
+h4 {
+  font-weight: 300;
+  margin: 0 0 10px 0;
+  color: #32323e;
+}
+
+h5 {
+  font-weight: 300;
+  margin: 0 0 10px 0;
+  color: #ff7300;
+}
+
+h6 {
+  font-weight: 600;
+  margin: 0 0 10px 0;
+  color: #ff7300;
+}
+
+blockquote {
+  background: url(../images/bg-citation.png) no-repeat 0 0;
+}
+
+/* Additional classes to fields in the display suite and ckEditor  */
+
+.float-left {
+  float: left;
+}
+
+.float-right {
+  float: right;
+}
+
+.align-left {
+  text-align: left;
+}
+
+.align-right {
+  text-align: right;
+}
+
+.align-center {
+  text-align: center;
+}
+
+.clear-block {
+  *zoom: 1;
+}
+
+.clear-block:before,
+.clear-block:after {
+  display: table;
+  content: " ";
+  line-height: 0;
+  clear: both;
+}
+
+.headline {
+  font-size: 1.1em;
+  font-weight: 600;
+  margin: 10px 0;
+}
+
+.more a {
+  color: #32312e;
+  text-decoration: none;
+  position: relative;
+}
+
+.more a:hover {
+  text-decoration: underline;
+}
+
+.more a:after {
+  content: "...";
+  color: #fff;
+  background: #ff7300;
+  margin-left: 5px;
+  text-decoration: none;
+  position: absolute;
+  height: 9px;
+  line-height: 1px;
+  top: 4px;
+  padding: 0 1px;
+  font-weight: 300;
+  right: -15px;
+}
+
+table {
+  border: 1px solid #32312e;
+}
+
+table thead {
+  background: #32312e;
+  color: #fff;
+}
+
+tr.even,
+tr.odd {
+  border: none;
+}
+
+tr.odd {
+  background-color: #eee;
+}
+
+tr.even {
+  background-color: #fff;
+}
+
+ul {
+  margin: 0 0 15px 0;
+}
+
+ul ul,
+ol ul,
+ul ul ul,
+ol ul ul,
+ol ol ul,
+ul ul ul ul,
+ol ul ul ul,
+ol ol ul ul,
+ol ol ol ul {
+  margin: 5px 0;
+}
+
+ul li {
+  padding: 10px 0 0 25px;
+  background: url(../images/bullet-secondlevel.png) no-repeat 0 12px;
+}
+
+ul li ul > li,
+ol li ul > li {
+  background: url(../images/bullet-thirdlevel.png) no-repeat 0 12px;
+  margin: 0;
+  padding: 10px 0 0 25px;
+}
+
+ul li ul li ul li,
+ol li ul li ul li,
+ol li ol li ul li {
+  background: url(../images/bullet-secondlevel.png) no-repeat 0 12px;
+}
+
+ol li ul li:after,
+ul li ol > li {
+  background: transparent;
+}
+
+ol {
+  color: #ff7300;
+  list-style-type: decimal;
+  margin: 0 0 15px 0;
+}
+
+ol ol,
+ol ol ol,
+ol ol ol ol {
+  margin: 5px 0;
+}
+
+#maincontent ol > li {
+  padding: 10px 0 0 0px;
+  margin: 0 0 0 25px;
+  position: relative;
+  color: #32312e;
+  /* Liste à puces ordonnées : http://www.alsacreations.com/article/lire/1210-donnez-du-style-a-vos-listes.html */
+  counter-increment: firstlevel;
+}
+
+#maincontent ol > li:after {
+  display: inline-block;
+  content: counter(firstlevel) " ";
+  padding: 0px 5px;
+  color: #ff7300;
+  margin: 0 0 0 0;
+  background: transparent;
+  position: absolute;
+  left: -24px;
+  line-height: 1.5em;
+  zoom: 1;
+  top: 11px;
+  font-weight: bold;
+}
+
+#maincontent ol li ol > li {
+  /* Liste à puces ordonnées : http://www.alsacreations.com/article/lire/1210-donnez-du-style-a-vos-listes.html */
+  counter-increment: secondlevel;
+}
+
+#maincontent ol li ol > li:after {
+  content: counter(secondlevel) " ";
+  background: none repeat scroll 0 0 transparent;
+}
+
+#maincontent ol li ol li ol > li {
+  /* Liste à puces ordonnées : http://www.alsacreations.com/article/lire/1210-donnez-du-style-a-vos-listes.html */
+  counter-increment: thirdlevel;
+}
+
+#maincontent ol li ol li ol > li:after {
+  content: counter(thirdlevel) " ";
+  background: none repeat scroll 0 0 transparent;
+}
+
+#maincontent ol li ol li ol li ol > li {
+  /* Liste à puces ordonnées : http://www.alsacreations.com/article/lire/1210-donnez-du-style-a-vos-listes.html */
+  counter-increment: fourthlevel;
+}
+
+#maincontent ol li ol li ol li ol > li:after {
+  content: counter(fourthlevel) " ";
+}
+
+div.messages {
+  /* LTR */
+  background-position: 8px 8px;
+  background-repeat: no-repeat;
+  border: 1px solid;
+  margin: 6px 0;
+  /* LTR */
+  padding: 10px 10px 10px 50px;
+}
+
+div.status {
+  background-image: url(../icons/message-24-ok.png);
+  border-color: #be7;
+}
+
+div.status,
+.ok {
+  color: #234600;
+}
+
+div.status,
+table tr.ok {
+  background-color: #f8fff0;
+}
+
+div.warning {
+  background-image: url(../icons/message-24-warning.png);
+  border-color: #ed5;
+}
+
+div.warning,
+.warning {
+  color: #840;
+}
+
+div.warning,
+table tr.warning {
+  background-color: #fffce5;
+}
+
+div.error {
+  background-image: url(../icons/message-24-error.png);
+  border-color: #ed541d;
+}
+
+div.error,
+.error {
+  color: #8c2e0b;
+}
+
+div.error,
+table tr.error {
+  background-color: #fef5f1;
+}
+
+div.error p.error {
+  color: #333;
+}
+
+div.messages ul {
+  /* LTR */
+  margin: 0 0 0 1em;
+  padding: 0;
+}
+div.messages ul li {
+  list-style-image: none;
+}
+
+/* Avoid style in dropdown. */
+
+ul.cke_panel_list li {
+  background: none !important;
+  padding: 0;
+}
+
+ul.cke_panel_list li div {
+  margin: 0;
+  padding: 2px;
+  background: none !important;
+}

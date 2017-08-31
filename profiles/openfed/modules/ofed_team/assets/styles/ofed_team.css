@@ -1,0 +1,165 @@
+/*		
+		TEAM Member		
+*/
+.field-name-field-ofed-team-pubdate,
+.field-name-field-ofed-team-update								{
+	font-size: 0.85em;
+	color: #B0AEA4;
+}
+.field-name-field-ofed-team-thumb img							{
+	border: 3px solid white;
+	box-shadow: 0 0 4px rgba(0, 0, 0, 0.25);
+}
+
+.field-name-field-ofed-team-first-name,
+.field-name-field-ofed-team-last-name							{
+	font-size: 1.5em;
+	font-weight: 600;
+	color: #ff7300;
+	line-height:1.25em;
+	padding-right: 5px;
+}
+#maincontent .field-name-field-ofed-team-first-name,
+#maincontent .field-name-field-ofed-team-last-name				{
+	font-size: 2em;
+}
+.field-name-field-ofed-team-function							{
+	padding-bottom: 5px;
+	font-weight: 700;
+}
+
+.field-name-field-ofed-team-gender,
+.field-name-field-ofed-team-picture,
+.field-name-field-ofed-team-email,
+.field-name-field-ofed-team-phone								{
+	padding-bottom: 10px;
+}
+.field-name-field-ofed-team-gender .label-inline,
+.field-name-field-ofed-team-phone .label-inline,
+.field-name-field-ofed-team-email .label-inline					{
+	display:inline-block ;
+	width: 13%;
+	text-decoration:underline;
+	font-weight: 600;
+}
+.field-name-field-ofed-team-civility							{
+	padding: 0 6px 0 0;
+	line-height: 3em;
+	color: #ff7300;
+}
+
+
+.block-info .field-name-field-ofed-team-civility,
+.view-mode-block_column .field-name-field-ofed-team-civility	{
+	line-height: 2em;
+}
+
+.block-list .field-name-field-ofed-team-first-name,
+.block-list .field-name-field-ofed-team-last-name				{
+    border-top: 1px solid #E1DED7;
+    padding: 5px 5px 0 0;
+}
+.view-mode-teaser .field-name-field-ofed-team-picture			{
+	padding: 10px 0 0 0;
+    border-top: 1px solid #E1DED7;
+}
+.view-mode-teaser .field-name-field-ofed-team-body p,
+.view-mode-teaser .field-name-field-ofed-team-body p:after		{
+	border-top: none;
+}
+.page-list .field-name-field-ofed-team-picture					{
+	padding-top: 10px;
+}
+.field-name-field-ofed-team-contact,
+.field-name-field-ofed-team-social,
+.field-name-field-ofed-video-link,
+.field-name-field-ofed-team-video								{
+	border: 1px solid #E1DED7;
+	background: #F4F4F3;
+	padding: 10px 10px 10px 10px;
+	margin-bottom:10px;
+}
+.field-name-field-ofed-team-contact .label-above,
+.field-name-field-ofed-team-social .label-above,
+.field-name-field-ofed-video-link .label-above,
+.field-name-field-ofed-team-video .label-above					{
+	text-decoration: underline;
+}
+
+.field-name-field-ofed-video-link .label-above,
+.field-name-field-ofed-team-video .label-above					{
+	font-weight: 600;
+	font-size: 1.1em;
+	padding-bottom: 10px;
+	display:block;
+}
+.field-name-field-ofed-team-social-name							{
+	font-weight: 600;
+	font-size: 1.1em;
+	color: #ff7300;
+	padding-top: 10px;
+}
+
+span.social-button												{
+	padding-right: 10px;
+	width: 32px;
+	height: 32px;
+	display:inline-block;
+	font-size:0;
+	line-height:0;
+}
+
+span.social-button a											{
+	width: 32px;
+	height: 32px;
+	display:inline-block;
+	font-size:0;
+	line-height:0;
+	text-shadow:none;
+	color: transparent;
+}
+span.social-button.facebook	a									{
+	background:url(../icons/icon-facebook-32.png) no-repeat 0 0;
+}
+span.social-button.twitter a									{
+	background:url(../icons/icon-twitter-32.png) no-repeat 0 0;
+}
+span.social-button.linkedin a									{
+	background:url(../icons/icon-linkedin-32.png) no-repeat 0 0;
+}
+span.social-button.googlep a									{
+	background:url(../icons/icon-googlep-32.png) no-repeat 0 0;
+}
+span.social-button span.ext										{
+	background: none;
+}
+.field-name-anchor												{
+	margin-bottom: 20px;
+}
+.view-display-id-ofed_team_block_column .views-row				{
+	float:left;    
+	width:33%;
+}
+
+.field-name-field-ofed-team-contact .view-mode-references		{
+	padding: 0;
+}
+
+.view-display-id-ofed_team_block_column:before,
+.view-display-id-ofed_team_block_column:after					{
+  display: table;
+  content: " ";
+  line-height: 0;
+  clear: both;
+}
+@media 	handheld,											/* Only Opera Mobile is compliant for the moment*/
+		only screen and (max-device-width:767px),			/* Only for smartphone screen */
+		only screen and (max-width:767px)
+{
+	.view-display-id-ofed_team_block_column .views-row	{
+		display: block;
+		float: none;
+		width: auto;
+	}
+}
+

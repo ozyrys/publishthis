@@ -1,0 +1,268 @@
+<?php
+
+/**
+ * @file
+ * Tests for the Administration menu - content languages module.
+ */
+
+/**
+ * Base class for all administration menu - content languages web test cases.
+ */
+class AdminMenuContentLanguagesWebTestCase extends DrupalWebTestCase {
+  protected $profile = 'testing';
+
+  protected $basePermissions = array(
+    'system' => 'access administration pages',
+    'admin_menu' => 'access administration menu',
+  );
+
+  /**
+   * {@inheritdoc}
+   */
+  function setUp() {
+    // Enable admin menu module and any other modules.
+    $modules = func_get_args();
+    $modules = isset($modules[0]) ? $modules[0] : $modules;
+    $modules[] = 'admin_menu';
+    $modules[] = 'admin_menu_content_languages';
+    parent::setUp($modules);
+
+    // Disable client-side caching.
+    variable_set('admin_menu_cache_client', FALSE);
+    // Disable Clean URLs to ensure drupal.org testbot compatibility.
+    variable_set('clean_url', 0);
+  }
+
+  /**
+   * Check that an element exists in HTML markup.
+   *
+   * @param $xpath
+   *   An XPath expression.
+   * @param array $arguments
+   *   (optional) An associative array of XPath replacement tokens to pass to
+   *   DrupalWebTestCase::buildXPathQuery().
+   * @param $message
+   *   The message to display along with the assertion.
+   * @param $group
+   *   The type of assertion - examples are "Browser", "PHP".
+   *
+   * @return
+   *   TRUE if the assertion succeeded, FALSE otherwise.
+   */
+  protected function assertElementByXPath($xpath, array $arguments = array(), $message, $group = 'Other') {
+    $elements = $this->xpath($xpath, $arguments);
+    return $this->assertTrue(!empty($elements[0]), $message, $group);
+  }
+
+  /**
+   * Check that an element does not exist in HTML markup.
+   *
+   * @param $xpath
+   *   An XPath expression.
+   * @param array $arguments
+   *   (optional) An associative array of XPath replacement tokens to pass to
+   *   DrupalWebTestCase::buildXPathQuery().
+   * @param $message
+   *   The message to display along with the assertion.
+   * @param $group
+   *   The type of assertion - examples are "Browser", "PHP".
+   *
+   * @return
+   *   TRUE if the assertion succeeded, FALSE otherwise.
+   */
+  protected function assertNoElementByXPath($xpath, array $arguments = array(), $message, $group = 'Other') {
+    $elements = $this->xpath($xpath, $arguments);
+    return $this->assertTrue(empty($elements), $message, $group);
+  }
+
+  /**
+   * Asserts that links appear in the menu in a specified trail.
+   *
+   * @param array $trail
+   *   A list of menu link titles to assert in the menu.
+   */
+  protected function assertLinkTrailByTitle(array $trail) {
+    $xpath = array();
+    $args = array();
+    $message = '';
+    foreach ($trail as $i => $title) {
+      $xpath[] = '/li/a[text()=:title' . $i . ']';
+      $args[':title' . $i] = $title;
+      $message .= ($i ? ' » ' : '') . check_plain($title);
+    }
+    $xpath = '//div[@id="admin-menu"]/div/ul' . implode('/parent::li/ul', $xpath);
+    $this->assertElementByXPath($xpath, $args, $message . ' link found.');
+  }
+
+  /**
+   * Asserts that no link appears in the menu for a specified trail.
+   *
+   * @param array $trail
+   *   A list of menu link titles to assert in the menu.
+   */
+  protected function assertNoLinkTrailByTitle(array $trail) {
+    $xpath = array();
+    $args = array();
+    $message = '';
+    foreach ($trail as $i => $title) {
+      $xpath[] = '/li/a[text()=:title' . $i . ']';
+      $args[':title' . $i] = $title;
+      $message .= ($i ? ' » ' : '') . check_plain($title);
+    }
+    $xpath = '//div[@id="admin-menu"]/div/ul' . implode('/parent::li/ul', $xpath);
+    $this->assertNoElementByXPath($xpath, $args, $message . ' link not found.');
+  }
+
+
+  /**
+   * Installs the specified language, or enables it if it is already installed.
+   *
+   * @param $language_code
+   *   The language code to check.
+   */
+  function addLanguage($language_code) {
+    // Check to make sure that language has not already been installed.
+    $this->drupalGet('admin/config/regional/language');
+
+    if (strpos($this->drupalGetContent(), 'enabled[' . $language_code . ']') === FALSE) {
+      // Doesn't have language installed so add it.
+      $edit = array();
+      $edit['langcode'] = $language_code;
+      $this->drupalPost('admin/config/regional/language/add', $edit, t('Add language'));
+
+      // Make sure we are not using a stale list.
+      drupal_static_reset('language_list');
+      $languages = language_list('language');
+      $this->assertTrue(array_key_exists($language_code, $languages), 'Language was installed successfully.');
+
+      if (array_key_exists($language_code, $languages)) {
+        $this->assertRaw(t('The language %language has been created and can now be used. More information is available on the <a href="@locale-help">help screen</a>.', array('%language' => $languages[$language_code]->name, '@locale-help' => url('admin/help/locale'))), 'Language has been created.');
+      }
+    }
+    elseif ($this->xpath('//input[@type="checkbox" and @name=:name and @checked="checked"]', array(':name' => 'enabled[' . $language_code . ']'))) {
+      // It's installed and enabled. No need to do anything.
+      $this->assertTrue(true, 'Language [' . $language_code . '] already installed and enabled.');
+    }
+    else {
+      // It's installed but not enabled. Enable it.
+      $this->assertTrue(true, 'Language [' . $language_code . '] already installed.');
+      $this->drupalPost(NULL, array('enabled[' . $language_code . ']' => TRUE), t('Save configuration'));
+      $this->assertRaw(t('Configuration saved.'), 'Language successfully enabled.');
+    }
+  }
+}
+
+/**
+ * Tests menu links depending on user permissions.
+ */
+class AdminMenuContentLanguagesLinksTestCase extends AdminMenuContentLanguagesWebTestCase {
+  public static function getInfo() {
+    return array(
+      'name' => 'Language menu links',
+      'description' => 'Tests if menu links for content languages appear correctly.',
+      'group' => 'Administration menu - Content languages',
+    );
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  function setUp() {
+    parent::setUp(array(
+      'node',
+      'locale',
+      'translation',
+      'variable',
+      'i18n',
+      'i18n_node',
+    ));
+    $permissions = $this->basePermissions + array(
+      'administer site configuration',
+      'administer content types',
+      'administer nodes',
+      'administer languages',
+    );
+    $this->admin_user = $this->drupalCreateUser($permissions);
+    $this->drupalLogin($this->admin_user);
+    $this->addLanguage('fr');
+  }
+
+  /**
+   * Tests node type links.
+   */
+  function testNode() {
+    $this->drupalCreateContentType(array('type' => 'article', 'name' => 'Article'));
+
+    // Set "Article" content type to use multilingual support with
+    // translation.
+    $this->drupalGet('admin/structure/types/manage/article');
+    $edit = array();
+    $edit['language_content_type'] = 2;
+    $this->drupalPost('admin/structure/types/manage/article', $edit, t('Save content type'));
+    $this->assertRaw(t('The content type %type has been updated.', array('%type' => 'Article')), 'Article content type has been updated.');
+
+    // Set up prefix-based language negotiation.
+    $edit = array('language[enabled][locale-url]' => TRUE);
+    $this->drupalPost('admin/config/regional/language/configure', $edit, t('Save settings'));
+    $this->assertRaw(t('Language negotiation configuration saved.'), 'URL language detection enabled.');
+    drupal_static_reset('locale_url_outbound_alter');
+
+    $permissions = $this->basePermissions + array(
+      'administer site configuration',
+      'administer content types',
+      'create article content',
+    );
+    $this->admin_user = $this->drupalCreateUser($permissions);
+    $this->drupalLogin($this->admin_user);
+
+    $this->assertNoLinkTrailByTitle(array(
+      'Add content',
+      'Article',
+      'Article (English)',
+    ));
+
+    $edit = array('i18n_node_options[current]' => 1);
+    $this->drupalPost('admin/structure/types/manage/article', $edit, t('Save content type'));
+    $this->assertRaw(t('The content type %type has been updated.', array('%type' => 'Article')), 'Article content type has been updated.');
+
+    $this->assertLinkTrailByTitle(array(
+      'Add content',
+      'Article',
+      'Article (English)',
+    ));
+
+    // Verify that dynamic links are displayed.
+    $this->drupalGet('');
+    $this->assertElementByXPath('//div[@id="admin-menu"]', array(), t('Administration menu found.'));
+    $this->assertElementByXPath('//div[@id="admin-menu"]//a[contains(@href, :path)]', array(':path' => 'admin/structure/types'), "Structure » Content types link found.");
+
+    // Verify Add content links.
+    $links = array(
+      'node/add/article' => 'Article',
+      'fr/node/add/article' => 'Article (Français)',
+      'node/add/article' => 'Article (English)',
+    );
+    foreach ($links as $path => $title) {
+      $this->assertElementByXPath('//div[@id="admin-menu"]//a[contains(@href, :path) and text()=:title]', array(
+        ':path' => $path,
+        ':title' => $title,
+      ), "Add content » $title link found.");
+    }
+
+    $permissions = $this->basePermissions + array(
+      'access content overview',
+      'access content',
+      'create article content',
+    );
+    $this->admin_user = $this->drupalCreateUser($permissions);
+    $this->drupalLogin($this->admin_user);
+
+    $this->assertLinkTrailByTitle(array(
+      'Content',
+      'Add content',
+      'Article',
+      'Article (English)',
+    ));
+  }
+
+}

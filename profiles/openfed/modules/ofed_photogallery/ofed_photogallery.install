@@ -1,0 +1,359 @@
+<?php
+
+/**
+ * Implements hook_install().
+ */
+function ofed_photogallery_install() {
+  // Include ds settings.
+  $file = drupal_get_path('module', 'ofed_photogallery') . '/install/_ofed_photogallery.ds.inc';
+  if (file_exists($file)) {
+    // Include it.
+    include_once 'install/_ofed_photogallery.ds.inc';
+
+    // Install ds customs fields.
+    if (function_exists('ofed_photogallery_ds_custom_fields_info')) {
+      $fields = ofed_photogallery_ds_custom_fields_info();
+      foreach ($fields as $id => $field) {
+        // Remove one key.
+        if (isset($field->api_version)) {
+          unset($field->api_version);
+        }
+        // Serialize the entities.
+        $field->entities = serialize($field->entities);
+        // Serialize the ui_limit.
+        $field->ui_limit = serialize($field->ui_limit);
+        // Serialize the properties.
+        $field->properties = serialize($field->properties);
+
+        // Cast variable like an array.
+        $field = (array) $field;
+
+        // Save in database.
+        db_insert('ds_fields')->fields($field)->execute();
+      }
+    }
+
+    // Install ds fields settings.
+    if (function_exists('ofed_photogallery_ds_field_settings_info')) {
+      $fields = ofed_photogallery_ds_field_settings_info();
+      foreach ($fields as $id => $field) {
+        // Remove one key.
+        if (isset($field->api_version)) {
+          unset($field->api_version);
+        }
+        // Serialize the settings.
+        $field->settings = serialize($field->settings);
+
+        // Cast variable like an array.
+        $field = (array) $field;
+
+        // Save in database.
+        db_insert('ds_field_settings')->fields($field)->execute();
+      }
+    }
+
+    // Install ds layouts settings.
+    if (function_exists('ofed_photogallery_ds_layout_settings_info')) {
+      $layouts = ofed_photogallery_ds_layout_settings_info();
+      foreach ($layouts as $id => $layout) {
+        // Remove one key.
+        if (isset($layout->api_version)) {
+          unset($layout->api_version);
+        }
+        // Serialize the settings.
+        $layout->settings = serialize($layout->settings);
+
+        // Cast variable like an array.
+        $layout = (array) $layout;
+
+        // Save in database.
+        db_insert('ds_layout_settings')->fields($layout)->execute();
+      }
+    }
+  }
+
+  // Paths alias management.
+  $path_source = 'photo-galleries';
+  // Set path alias whitelist.
+  $path_alias_whitelist = variable_get('path_alias_whitelist', array());
+  if (!array_key_exists($path_source, $path_alias_whitelist)) {
+    $path_alias_whitelist[$path_source] = TRUE;
+    variable_set('path_alias_whitelist', $path_alias_whitelist);
+  }
+
+  // Set path alias for each languages.
+  $languages = language_list('enabled');
+  foreach ($languages as $language) {
+    // FR.
+    if (isset($language['fr'])) {
+      $path = array(
+        'source' => $path_source,
+        'alias' => 'galeries-photos',
+        'language' => 'fr',
+      );
+      db_insert('url_alias')->fields($path)->execute();
+    }
+
+    // NL.
+    if (isset($language['nl'])) {
+      $path = array(
+        'source' => $path_source,
+        'alias' => 'fotogalerijen',
+        'language' => 'nl',
+      );
+      db_insert('url_alias')->fields($path)->execute();
+    }
+
+    // DE.
+    if (isset($language['de'])) {
+      $path = array(
+        'source' => $path_source,
+        'alias' => 'foto-galerien',
+        'language' => 'de',
+      );
+      db_insert('url_alias')->fields($path)->execute();
+    }
+  }
+}
+
+/**
+ * Create the missing paths alias for each languages.
+ */
+function ofed_photogallery_update_7100() {
+  $module = db_select('system', 's')
+    ->fields('s')
+    ->condition('name', 'ofed_feature_photogallery')
+    ->execute()
+    ->fetchObject();
+
+  if (!empty($module) && $module->schema_version < 7100) {
+    // Paths alias management.
+    // Delete wrong alias.
+    db_delete('url_alias')->condition('source', 'photos-galleries')->condition('alias', 'galeries-photos')->condition('language', 'fr')->execute();
+    db_delete('url_alias')->condition('source', 'photos-galleries')->condition('alias', 'fotos-galerijs')->condition('language', 'nl')->execute();
+
+    // Delete from path alias whitelist.
+    $path_alias_whitelist = variable_get('path_alias_whitelist', array());
+    if (array_key_exists('photos-galleries', $path_alias_whitelist)) {
+      unset($path_alias_whitelist['photos-galleries']);
+      variable_set('path_alias_whitelist', $path_alias_whitelist);
+    }
+
+    // Add newest alias.
+    // Paths alias management.
+    $path_source = 'photo-galleries';
+    // Set path alias whitelist.
+    $path_alias_whitelist = variable_get('path_alias_whitelist', array());
+    if (!array_key_exists($path_source, $path_alias_whitelist)) {
+      $path_alias_whitelist[$path_source] = TRUE;
+      variable_set('path_alias_whitelist', $path_alias_whitelist);
+    }
+
+    // Set path alias for each languages.
+    $languages = language_list('enabled');
+    foreach ($languages as $language) {
+      // FR.
+      if (isset($language['fr']) && !drupal_lookup_path('alias', $path_source, 'fr')) {
+        $path = array(
+          'source' => $path_source,
+          'alias' => 'galeries-photos',
+          'language' => 'fr',
+        );
+        db_insert('url_alias')->fields($path)->execute();
+      }
+
+      // NL.
+      if (isset($language['nl']) && !drupal_lookup_path('alias', $path_source, 'nl')) {
+        $path = array(
+          'source' => $path_source,
+          'alias' => 'fotogalerijen',
+          'language' => 'nl',
+        );
+        db_insert('url_alias')->fields($path)->execute();
+      }
+    }
+
+    // Update path patterns.
+    variable_set('pathauto_taxonomy_term_ofed_photogallery_nl_pattern', 'fotogalerijen/[term:name]');
+
+    // Include the modules functions needed.
+    // Pathauto.
+    module_load_include('module', 'pathauto', 'pathauto');
+    module_load_include('inc', 'pathauto', 'pathauto');
+    // Token.
+    module_load_include('module', 'token', 'token');
+    module_load_include('inc', 'token', 'token.tokens');
+    // Transliteration.
+    module_load_include('module', 'transliteration', 'transliteration');
+
+    // Update node paths.
+    $settings = array();
+    // DEFAULT.
+    $settings[] = array(
+      'content_type' => 'ofed_photogallery',
+      'content_language' => '',
+      'pattern_var_name' => 'pathauto_node_ofed_photogallery_pattern',
+      'pattern_var_value_new' => 'photo-galleries/[node:title]',
+      'pattern_var_value_old' => 'photos-galleries/[node:title]',
+      'matches_patterns' => 'photos-galleries/*',
+    );
+    // NL.
+    if (!empty($languages[1]['nl'])) {
+      $settings[] = array(
+        'content_type' => 'ofed_photogallery',
+        'content_language' => 'nl',
+        'pattern_var_name' => 'pathauto_node_ofed_photogallery_nl_pattern',
+        'pattern_var_value_new' => 'fotogalerijen/[node:title]',
+        'pattern_var_value_old' => 'fotos-galerijs/[node:title]',
+        'matches_patterns' => 'fotos-galerijs/*',
+      );
+    }
+
+    // For each settings.
+    foreach($settings as $setting) {
+      // Set the actual value.
+      $setting['pattern_var_value_now'] = variable_get($setting['pattern_var_name'], '');
+
+      // If the pattern was not overriden.
+      if ($setting['pattern_var_value_now'] == $setting['pattern_var_value_old']) {
+        // Update pattern variable.
+        variable_set($setting['pattern_var_name'], $setting['pattern_var_value_new']);
+
+        // Get all nodes that need to be updated.
+        // Update node paths.
+        // Select nodes id for this type.
+        $nids = db_select('node', 'n')
+                ->fields('n', array('nid'))
+                ->condition('n.type', $setting['content_type'])
+                ->condition('n.language', $setting['content_language'])
+                ->execute()->fetchCol();
+
+        // Remove nodes with custom path.
+        foreach ($nids as $nid) {
+          $path = drupal_get_path_alias('node/' . $nid, $setting['content_language']);
+          // If the path pattern match with the matches.
+          if (!drupal_match_path($path, $setting['matches_patterns'])) {
+            // Remove node with custom path.
+            if (($key = array_search($nid, $nids)) !== FALSE) {
+              unset($nids[$key]);
+            }
+          }
+        }
+
+        // Bulk update.
+        if (!empty($nids)) {
+          // Save current action for new aliases and change it to delete old one.
+          $alias_action = variable_get('pathauto_update_action', 0);
+          variable_set('pathauto_update_action', PATHAUTO_UPDATE_ACTION_DELETE);
+
+          // Proceed to update.
+          pathauto_node_update_alias_multiple($nids, 'bulkupdate');
+
+          // Restore original action for new aliases.
+          variable_set('pathauto_update_action', $alias_action);
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Disable unused view modes.
+ */
+function ofed_photogallery_update_7101() {
+  $module = db_select('system', 's')
+    ->fields('s')
+    ->condition('name', 'ofed_feature_photogallery')
+    ->execute()
+    ->fetchObject();
+
+  if (!empty($module) && $module->schema_version < 7101) {
+    // Set the bundle name.
+    $bundle = 'ofed_photogallery';
+    // Set what display will be removed.
+    $displays_to_delete = array('search_index', 'block_info');
+
+    // Delete display suite layout settings.
+    foreach ($displays_to_delete as $display_to_delete) {
+      db_delete('ds_layout_settings')->condition('id', 'node|' . $bundle . '|' . $display_to_delete)->execute();
+    }
+    // Delete display suite field settings.
+    foreach ($displays_to_delete as $display_to_delete) {
+      db_delete('ds_field_settings')->condition('id', 'node|' . $bundle . '|' . $display_to_delete)->execute();
+    }
+
+    // Update field instance.
+    // Get field config instance for each field used by the content type.
+    // Select each field instance for this bundle.
+    $fields = db_select('field_config_instance', 'fci')->fields('fci')->condition('bundle', $bundle)->execute()->fetchAll();
+    foreach ($fields as $field) {
+      // Get data.
+      $data = unserialize($field->data);
+      // Remove displays.
+      foreach ($displays_to_delete as $display_to_delete) {
+        if (isset($data['display'][$display_to_delete])) {
+          unset($data['display'][$display_to_delete]);
+        }
+      }
+      // Set data.
+      $field->data = serialize($data);
+      // Update record.
+      db_update('field_config_instance')->fields(array('data' => $field->data))->condition('id', $field->id)->execute();
+    }
+
+    // Update bundle settings variable.
+    // Get variable content.
+    $bundle_settings_node = variable_get('field_bundle_settings_node__' . $bundle, array());
+    if (!empty($bundle_settings_node)) {
+      // Disable displays.
+      foreach ($displays_to_delete as $display_to_delete) {
+        if (isset($bundle_settings_node['view_modes'][$display_to_delete])) {
+          if ($display_to_delete == 'block_info') {
+            unset($bundle_settings_node['view_modes'][$display_to_delete]);
+            if (isset($bundle_settings_node['extra_fields']['display']['language'][$display_to_delete])) {
+              unset($bundle_settings_node['extra_fields']['display']['language'][$display_to_delete]);
+            }
+          }
+          else {
+            $bundle_settings_node['view_modes'][$display_to_delete] = array('custom_settings' => FALSE);
+          }
+        }
+      }
+      // Set variable content.
+      variable_set('field_bundle_settings_node__' . $bundle, $bundle_settings_node);
+    }
+  }
+}
+
+/**
+ * Create the missing paths alias for german language.
+ */
+function ofed_photogallery_update_7102() {
+  $module = db_select('system', 's')
+    ->fields('s')
+    ->condition('name', 'ofed_feature_photogallery')
+    ->execute()
+    ->fetchObject();
+
+  if (!empty($module) && $module->schema_version < 7102) {
+    // Paths alias management.
+    $path_source = 'photo-galleries';
+    // Set path alias whitelist.
+    $path_alias_whitelist = variable_get('path_alias_whitelist', array());
+    if (!array_key_exists($path_source, $path_alias_whitelist)) {
+      $path_alias_whitelist[$path_source] = TRUE;
+      variable_set('path_alias_whitelist', $path_alias_whitelist);
+    }
+
+    // Set path alias for german language.
+    $languages = language_list('enabled');
+    if (isset($languages['de']) && !drupal_lookup_path('alias', $path_source, 'de')) {
+      $path = array(
+        'source'   => $path_source,
+        'alias'    => 'foto-galerien',
+        'language' => 'de',
+      );
+      db_insert('url_alias')->fields($path)->execute();
+    }
+  }
+}

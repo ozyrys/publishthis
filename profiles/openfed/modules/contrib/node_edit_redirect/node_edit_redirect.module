@@ -1,0 +1,33 @@
+<?php
+
+/**
+ * @file
+ * Node Edit Redirect module.
+ */
+
+/**
+ * Implements hook_page_build().
+ */
+function node_edit_redirect_page_build() {
+  if (arg(0) == 'node' && is_numeric(arg(1)) && arg(2) == 'edit') {
+    // Find out what the negotiated content language is.
+    $current_content_language = $GLOBALS[LANGUAGE_TYPE_CONTENT];
+    // Find out what the language of the node that's being edited is.
+    $node = menu_get_object();
+    $node_langcode = entity_language('node', $node);
+    if ($node_langcode && $node_langcode != LANGUAGE_NONE && $node_langcode != $current_content_language->language) {
+      $path = current_path();
+      $languages = language_list('enabled');
+      if (isset($languages[1][$node_langcode])) {
+        // Redirect to the language of the node.
+        $options['language'] = $languages[1][$node_langcode];
+        // Retain the current query string.
+        $options['query'] = drupal_get_query_parameters();
+        // Prevent drupal_goto() from redirecting to the destination.
+        unset($_GET['destination']);
+        // Redirect to the right prefix/domain.
+        drupal_goto($path, $options);
+      }
+    }
+  }
+}

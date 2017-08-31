@@ -1,0 +1,251 @@
+<?php
+
+/**
+ * @file
+ * Module used to set up the CMS start page and to switch between admin and
+ * default interface with the Openfed distribution.
+ */
+
+/**
+ * Implements hook_theme().
+ */
+function ofed_switcher_theme($existing, $type, $theme, $path) {
+  return array(
+    'ofed_dashboard_page' => array(
+      'variables' => array('dashboard' => NULL),
+      'template' => 'templates/pages/ofed_switcher_page_dashboard',
+    ),
+  );
+}
+
+/**
+ * Implements hook_permission().
+ */
+function ofed_switcher_permission() {
+  return array(
+    'access ofed_switcher content' => array(
+      'title' => t('View CMS Start Page'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_menu().
+ */
+function ofed_switcher_menu() {
+  $items['cms/startpage'] = array(
+    'title' => 'Start Page',
+    'page callback' => 'ofed_switcher_dashboard',
+    'access arguments' => array('access ofed_switcher content'),
+    'type' => MENU_NORMAL_ITEM,
+    'weight' => -50,
+  );
+
+  return $items;
+}
+
+/**
+ * Display the first page in the cms interface to manage content, user, block.
+ * @return string
+ *   The template content.
+ */
+function ofed_switcher_dashboard() {
+  $dashboard = array();
+
+  // MANAGE QUICK INFO.
+  $dashboard['quick-info'] = theme('links__menu_quick_infos', array('links' => menu_navigation_links('menu-quick-infos')));
+
+  // MANAGE CONTENT.
+  $dashboard['content'] = array();
+  $languages_enabled = language_list('enabled');
+  foreach (node_type_get_names() as $content_key => $content_name) {
+    $content_key = check_plain($content_key);
+    $links = array();
+
+    if (user_access('create ' . $content_key . ' content')) {
+      $dashboard['content'][$content_name]['label'] = $content_name;
+      // Check if the "Set current language as default for new content."
+      // checkbox in the multilingual settings for this content type is checked.
+      $content_type_settings = variable_get('i18n_node_options_' . $content_key, FALSE);
+      if (!empty($content_type_settings) && in_array('current', $content_type_settings)) {
+        foreach ($languages_enabled[1] as $language_enabled) {
+          $links['add _' . $language_enabled->language] = l(t('Add (@language)', array('@language' => $language_enabled->native)), 'node/add/' . str_replace('_', '-', $content_key), array(
+            'html' => TRUE,
+            'language' => $language_enabled,
+          ));
+        }
+      }
+      else {
+        $links['add'] = l(t('Add'), 'node/add/' . str_replace('_', '-', $content_key), array(
+          'html' => TRUE,
+        ));
+      }
+    }
+
+    if (user_access('edit any ' . $content_key . ' content')) {
+      $dashboard['content'][$content_name]['label'] = $content_name;
+      if (module_exists('admin_views')) {
+        $links['show'] = l(t('Show'), 'admin/content', array(
+          'query' => array(
+            'type' => $content_key,
+          ),
+          'html' => TRUE,
+       ));
+      }
+      else {
+        $links['show'] = l(t('Show'), 'admin/content/type/' . $content_key , array('html' => TRUE));
+      }
+    }
+
+    if (!empty($links)) {
+      $dashboard['content'][$content_name]['links'] = implode(' / ', $links);
+    }
+  }
+
+  // MANAGE USERS.
+  if (user_access('administer users') || user_access('administer permissions')) {
+    $dashboard['user'] = array();
+    if (user_access('administer users')) {
+      $dashboard['user'][t('Users')] = array(t('Add user') => 'admin/people/create');
+    }
+    if (user_access('administer permissions')) {
+      $dashboard['user'][t('Roles')] = array(t('Add role') => 'admin/people/roles');
+      $dashboard['user'][t('Permissions')] = array(t('Configure permissions') => 'admin/people/permissions');
+    }
+  }
+
+  // MANAGE BLOCK.
+  if (user_access('administer blocks')) {
+    $dashboard['block'] = array();
+    $dashboard['block'][t('Blocks')] = array(t('Add Block') => 'admin/structure/block/add');
+
+    if (module_exists('menu_block')) {
+      $dashboard['block'][t('Menu Blocks')] = array(t('Add Menu Block') => 'admin/structure/block/add-menu-block');
+    }
+    $dashboard['block'][t('Configuration')] = array(t('Configure block') => 'admin/structure/block');
+  }
+
+  return theme('ofed_dashboard_page', array('dashboard' => $dashboard));
+}
+
+/**
+ * Implements hook_theme_registry_alter().
+ */
+function ofed_switcher_theme_registry_alter(&$theme_registry) {
+  $mod_path = drupal_get_path('module', 'ofed_switcher');
+  // Munge on a copy.
+  $theme_registry_copy = $theme_registry;
+  _theme_process_registry($theme_registry_copy, 'phptemplate', 'theme_engine', 'pow', $mod_path);
+  $theme_registry += array_diff_key($theme_registry_copy, $theme_registry);
+  $hooks = array('node');
+  foreach ($hooks as $h) {
+    _ofed_switcher_insert_after_first_element($theme_registry[$h]['theme paths'], $mod_path);
+  }
+}
+
+/**
+ * Helper function for re-ordering arrays (needed by theme_registry_alter).
+ */
+function _ofed_switcher_insert_after_first_element(&$a, $element) {
+  if (is_array($a)) {
+    $first_element = array_shift($a);
+    array_unshift($a, $first_element, $element);
+  }
+}
+
+/**
+ * Implements hook_admin_menu_output_alter().
+ *
+ * Adds "Go to front"/"Go to CMS" links to admin toolbar
+ *
+ * @see ofed_switcher_init()
+ */
+function ofed_switcher_admin_menu_output_alter(&$content) {
+  if (isset($content['account']['account']['#attributes']['class'][1]) && $content['account']['account']['#attributes']['class'][1] == 'admin-menu-account') {
+    unset($content['account']['account']['#attributes']['class'][1]);
+  }
+  $content['account']['switcher_front'] = array(
+    '#title' => t('Go to Front'),
+    '#weight' => -98,
+    '#attributes' => array(
+      'class' => array('admin-menu-action', 'admin-menu-account'),
+      'style' => 'display: none;',
+      'id' => 'admin-menu-gotofront',
+    ),
+    '#href' => '<front>',
+  );
+  $content['account']['switcher_cms'] = array(
+    '#title' => t('Go to CMS'),
+    '#weight' => -98,
+    '#attributes' => array(
+      'class' => array('admin-menu-action', 'admin-menu-account'),
+      'style' => 'display: none;',
+      'id' => 'admin-menu-gotocms',
+    ),
+    '#href' => 'cms/startpage',
+  );
+}
+
+/**
+ * Implements hook_init().
+ *
+ * @see ofed_switcher_admin_menu_output_alter()
+ */
+function ofed_switcher_init() {
+  global $user;
+
+  if ($user->uid != 0) {
+    if (user_access('access ofed_switcher content')) {
+      // Add a different Drupal JS Setting variable depending on which link to show.
+      if (arg(0) == 'admin' || arg(0) == 'cms' || path_is_admin(current_path())) {
+        $settings = array('go_to_front' => TRUE);
+      }
+      else {
+        $settings = array('go_to_cms' => TRUE);
+      }
+      drupal_add_js(array('ofed_switcher' => $settings), 'setting');
+      // As the cached admin menu is added in javascript, we use javascript to display
+      // the right link as well.
+      drupal_add_js(drupal_get_path('module', 'ofed_switcher') . '/assets/scripts/ofed_switcher.js');
+      drupal_add_css(drupal_get_path('module', 'ofed_switcher') . '/assets/styles/ofed_switcher.css');
+    }
+  }
+}
+
+/**
+ * Implements hook_form_alter().
+ *
+ * From https://drupal.org/node/2061957. Allows us to link to a filtered admin
+ * content page.
+ *
+ * @see node_build_filter_query()
+ */
+function ofed_switcher_form_alter(&$form, &$form_state, $form_id) {
+  if ($form_id == 'node_admin_content' && arg(2) == 'type' && in_array(arg(3), array_keys(node_type_get_types()))) {
+    if (!empty($_SESSION['node_overview_filter'])) {
+      foreach ($_SESSION['node_overview_filter'] as $index => $filter) {
+        if ($filter[0] == 'type') {
+          // Unset old type filter
+          unset($_SESSION['node_overview_filter'][$index]);
+          // Recalculate indexes
+          $_SESSION['node_overview_filter'] = array_values($_SESSION['node_overview_filter']);
+        }
+      }
+    }
+    // Set new type filter
+    $_SESSION['node_overview_filter'][] = array('type', arg(3));
+    drupal_goto('admin/content');
+  }
+  return $form;
+}
+
+/**
+ * Implements hook_admin_paths().
+ */
+function ofed_switcher_admin_paths() {
+  $paths = array(
+    'cms' => TRUE,
+    'cms/*' => TRUE,
+  );
+  return $paths;
+}

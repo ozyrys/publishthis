@@ -1,0 +1,12 @@
+<?php
+/**
+ * Implements hook_install().
+ *
+ * Disables original view so we can enable the clone provided by this feature.
+ * See https://drupal.org/node/1961734
+ */
+function ofed_admin_views_language_install() {
+  $status = variable_get('views_defaults', array());
+  $status['admin_views_node'] = TRUE;
+  variable_set('views_defaults', $status);
+}

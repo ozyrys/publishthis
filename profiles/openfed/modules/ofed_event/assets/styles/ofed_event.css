@@ -1,0 +1,98 @@
+.field-name-field-ofed-event-date							{
+	font-size: 1.5em;
+	margin: 5px 0 15px 0;
+	font-weight: 600;
+}
+.field-name-field-ofed-event-date span.date-display-start,
+.field-name-field-ofed-event-date span.date-display-end,
+.field-name-field-ofed-event-date span.date-display-single	{
+	color:#ff7300;
+	font-style:normal;
+	font-size: 1em;
+}
+.field-name-field-ofed-event-organizer						{
+	margin: -10px 0 10px 0;
+	color: #ff7300;
+}
+.field-name-field-ofed-event-organizer .label-inline		{
+	color:#32312e;
+	font-weight: 300;
+}
+.page-list .field-name-field-ofed-event-date,
+.view-mode-block_column	.field-name-field-ofed-event-date	{
+	font-size: 1em;
+}
+.view-mode-block_column	.field-name-field-ofed-event-date	{
+	margin: 0 0 10px 0;
+}
+.block-list .field-name-field-ofed-event-date,
+.block-info .field-name-field-ofed-event-date				{
+	font-size: 1em;
+	margin:0;
+}
+.field-name-field-ofed-event-thumb							{
+	padding: 5px 10px 5px 0;
+	color: white;
+}
+.field-name-field-ofed-event-links,
+.field-name-field-ofed-event-docs,
+.field-name-field-ofed-event-address,
+.field-name-field-ofed-event-video							{
+	border: 1px solid #E1DED7;
+	background: #F4F4F3;
+	padding: 10px 10px 10px 10px;
+	margin-bottom: 10px;
+}
+.field-name-field-ofed-event-docs .label-above,
+.field-name-field-ofed-event-links .label-above,
+.field-name-field-ofed-event-address .label-above,
+.field-name-field-ofed-event-video .label-above				{
+	text-decoration: underline;
+}
+.field-name-field-ofed-event-docs .view-mode-references		{
+	padding: 0;
+}
+.field-name-field-ofed-event-author							{
+	font-size: 0.85em;
+	color: #B0AEA4;
+	margin: 10px 0;
+}
+.field-name-field-ofed-event-pubdate, 
+.field-name-field-ofed-event-update							{
+	font-size: 0.85em;
+	color: #B0AEA4;
+}
+.field-name-title.more a:after								{
+	display: none;
+} 
+.view-mode-block_element .field-name-field-ofed-event-date,
+.block-list .field-name-field-ofed-event-date, 
+.block-info .field-name-field-ofed-event-date 				{
+	font-size: 1em;
+	margin: 0;
+}
+.view-display-id-ofed_event_block_column .views-row			{
+	float:left;    
+	width:33%;
+}
+.view-display-id-ofed_event_block_column:before,
+.view-display-id-ofed_event_block_column:after				{
+	display: table;
+	content: " ";
+	line-height: 0;
+	clear: both;
+}
+.field-name-field-ofed-event-docs .view-mode-references,
+.field-name-field-ofed-event-address .view-mode-references	{
+	padding: 0;
+}
+@media 	handheld,											/* Only Opera Mobile is compliant for the moment*/
+		only screen and (max-device-width:767px),			/* Only for smartphone screen */
+		only screen and (max-width:767px)
+{
+	.view-display-id-ofed_event_block_column .views-row	{
+		display: block;
+		float: none;
+		width: auto;
+	}
+}

@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the Administration Views - With language filter feature.
+ */
+
+include_once 'ofed_admin_views_language.features.inc';

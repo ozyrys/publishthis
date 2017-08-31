@@ -1,0 +1,212 @@
+.field-name-file-type,
+.field-name-file-size											{
+	font-size: 0.85em;
+	text-transform: uppercase;
+	color: #b0aea4;
+	padding: 0 5px 0 0;
+	line-height: 25px;
+	margin-bottom: 5px;
+}
+
+.field-name-file-size:before									{
+	content: "- "; 
+}
+.field-name-file-type > span									{
+	padding: 0 0 0 22px;
+	display: inline-block;
+}	
+.file-type-pdf									{
+	background: url(../icons/application-pdf.png) no-repeat 0 1px;
+}
+.file-type-doc,
+.file-type-docx,
+.file-type-odt									{
+	background: url(../icons/x-office-document.png) no-repeat 0 1px;
+}
+.file-type-xls, 
+.file-type-xlsx,
+.file-type-ods									{
+	background: url(../icons/x-office-spreadsheet.png) no-repeat 0 0;
+}
+.file-type-ppt, 
+.file-type-pptx,
+.file-type-pps,
+.file-type-ppsx,	
+.file-type-odp									{
+	background: url(../icons/x-office-presentation.png) no-repeat 0 0;
+}
+.file-type-jpg, 
+.file-type-jpeg,
+.file-type-png, 
+.file-type-gif									{
+	background: url(../icons/image-x-generic.png) no-repeat 0 0;
+}
+.file-type-rar									{
+	background: url(../icons/icon-rar-mini.png) no-repeat 0 1px;
+}
+
+.file-type-zip									{
+	background: url(../icons/icon-zip-mini.png) no-repeat 0 1px;
+}
+/*		
+		DOWNLOAD PAGE : specific element	
+*/
+
+.view-mode-full	.field-name-field-ofed-download-file,
+.view-mode-full	.field-name-file-url-open,
+.view-mode-full	.field-name-url-file-save,
+.view-mode-full .field-name-file-url-persistent				{
+	padding: 10px;
+}
+.view-mode-full	.field-name-file-url-open,
+.view-mode-full	.field-name-url-file-save,
+.view-mode-full .field-name-file-url-persistent				{
+    margin-top: -50px;
+}
+.view-mode-references .field-name-file-url-open,
+.view-mode-references .field-name-url-file-save,
+.view-mode-references .field-name-file-url-persistent		{
+    margin-top: -16px;
+}
+.view-mode-references .field-name-file-url-open a,
+.view-mode-references .field-name-url-file-save a,
+.view-mode-references .field-name-file-url-persistent a		{
+    line-height: 20px;
+}
+.view-mode-references .field-name-file-url-open a:hover,
+.view-mode-references .field-name-url-file-save a:hover,
+.view-mode-references .field-name-file-url-persistent a:hover,
+.field-name-file-url-open a:hover,
+.field-name-url-file-save a:hover,
+.field-name-file-url-persistent	a:hover{
+	text-decoration: underline; 
+	color: #fff;
+}
+.view-mode-full	.field-name-field-ofed-download-file		{
+	font-size: 1.1em;
+	min-height: 60px;
+	background: #F4F4F3;
+	padding: 10px 10px 25px 10px;
+}
+.field-name-field-ofed-download-file a						{
+	text-decoration:none; 
+	color: #31302D;	
+	line-height: 29px;
+	cursor: default;
+}
+.field-name-file-url-open a,
+.field-name-url-file-save a,
+.field-name-file-url-persistent	a							{
+  display: inline-block;
+  *display: inline ;
+  /* IE7 inline-block hack */
+  *zoom: 1 ;
+  padding: 6px 14px 6px 30px;
+  margin: 0;
+  font-size: 13px ;
+  font-weight: 300;
+  text-align: center ;
+  vertical-align: middle ;
+  text-decoration:none;
+  cursor: pointer ;
+  color: #ffffff;
+  background: #ff7300 url(../icons/icon-viewfile.png) no-repeat 5px 7px;
+  -webkit-border-radius: 4px ;
+  -moz-border-radius: 4px ;
+  border-radius: 4px ;
+  position: relative;
+}
+.view-mode-block_element .field-name-file-url-open a,
+.view-mode-block_element .field-name-url-file-save a,
+.view-mode-block_element .field-name-file-url-persistent a	{
+  margin:5px 0;
+}
+
+.field-name-url-file-save a									{
+	background: #ff7300 url(../icons/icon-savefile.png) no-repeat 5px 7px;
+}
+
+.field-name-file-url-persistent a							{
+	background: #31302D url(../icons/icon-sharefile.png) no-repeat 5px 7px;
+}
+
+.field-name-file-url-persistent{
+  position: relative;
+  z-index: 10;
+}
+.field-name-file-url-persistent span.url-file-persistent 	{
+  position: absolute;
+  left: -1px;
+  bottom: 43px;
+  z-index: 11;
+  padding: 0 0 10px;
+  background: transparent url("../images/bg-url-file-persistent.png") no-repeat scroll 12px bottom;
+}
+.field-name-file-url-persistent span.url-file-persistent span{
+  background: none repeat scroll 0 0 #E0E0E0;
+  border-radius: 5px 5px 5px 5px;
+  line-height: 12px;
+  padding: 7px;
+  text-align: right;
+  display: block;
+}
+
+.field-name-file-url-persistent span.url-file-persistent input.url-file-persistent-input{
+  height: 20px;
+  line-height: 20px;
+  padding: 2px;
+  width: 200px;
+}
+.field-name-field-ofed-download-update,
+.field-name-field-ofed-download-pubdate,
+.field-name-field-ofed-download-author,			
+.field-name-field-ofed-download-source						{
+	font-size: 0.85em;
+	color: #B0AEA4;
+	margin: 10px 0;
+}
+#maincontent .page-list .node-sticky .field-name-field-ofed-download-thumb img{
+	border: none;
+	box-shadow: 0 0 4px rgba(255, 255, 255, 0.75);
+}
+.field-name-field-ofed-download-thumb						{
+	padding: 5px 10px 5px 0;
+	color: white; /*  Bug sous chrome  - le border de l'image est orange 	*/
+}						
+.field-name-field-ofed-download-thumb img					{
+	border: 3px solid white;
+	box-shadow: 0 0 4px rgba(0, 0, 0, 0.25);
+}
+.pane-ofed-download											{
+	background: #f4f4f3;
+  	border-top: 3px solid #ff7300;
+}
+.view-mode-full	.field-name-field-ofed-download-update,
+.view-mode-full	.field-name-field-ofed-download-pubdate,
+.view-mode-full	.field-name-field-ofed-download-author		{
+    margin-bottom: 5px;
+}
+.view-display-id-ofed_download_block_column .views-row		{
+	float:left;    
+	width:33%;
+}
+.view-display-id-ofed_download_block_column:before,
+.view-display-id-ofed_download_block_column:after			{
+	display: table;
+	content: " ";
+	line-height: 0;
+	clear: both;
+}
+.view-mode-full	.field-name-field-ofed-download-file		{
+	padding: 10px;
+}
+@media 	handheld,											/* Only Opera Mobile is compliant for the moment*/
+		only screen and (max-device-width:767px),			/* Only for smartphone screen */
+		only screen and (max-width:767px)
+{
+	.view-display-id-ofed_download_block_column .views-row	{
+		display: block;
+		float: none;
+		width: auto;
+	}
+}

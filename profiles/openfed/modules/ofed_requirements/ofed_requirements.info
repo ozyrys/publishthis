@@ -1,0 +1,19 @@
+name = Requirements Module
+description = Display a requirements check page to see if the OpenFed package delivered is compliant with the Fedict rules
+package = OpenFed
+core = 7.x
+
+
+; Information added by drush on 2016-05-16
+version = "7.x-2.x-dev"
+core = "7.x"
+project = "openfed"
+datestamp = "1463418641"
+
+
+; Information added by Drupal.org packaging script on 2017-08-17
+version = "7.x-2.11"
+core = "7.x"
+project = "openfed"
+datestamp = "1502965821"
+

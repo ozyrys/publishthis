@@ -1,0 +1,794 @@
+<?php
+
+/**
+ * @file
+ * Install, update and uninstall functions for the OpenFed install profile.
+ */
+
+/**
+ * Implements hook_install().
+ *
+ * Performs actions to set up the site for this profile.
+ *
+ * @see system_install()
+ */
+function openfed_install() {
+  // Include all custom functions.
+  require_once('includes/misc/openfed_functions.inc');
+
+  // Include all modules configurations.
+  require_once('includes/install/openfed_roles.inc');
+  require_once('includes/install/openfed_users.inc');
+  require_once('includes/install/openfed_text_format.inc');
+  require_once('includes/install/openfed_menus.inc');
+  require_once('includes/install/openfed_blocks.inc');
+  require_once('includes/install/openfed_ckeditor.inc');
+  require_once('includes/install/openfed_ckeditor_link.inc');
+  require_once('includes/install/openfed_colorbox.inc');
+  require_once('includes/install/openfed_date.inc');
+  require_once('includes/install/openfed_displaysuite.inc');
+  require_once('includes/install/openfed_extlink.inc');
+  require_once('includes/install/openfed_easy_breadcrumb.inc');
+  require_once('includes/install/openfed_flag.inc');
+  require_once('includes/install/openfed_globalredirect.inc');
+  require_once('includes/install/openfed_html5_tools.inc');
+  require_once('includes/install/openfed_imce.inc');
+  require_once('includes/install/openfed_logintoboggan.inc');
+  require_once('includes/install/openfed_pathauto.inc');
+  require_once('includes/install/openfed_path_breadcrumbs.inc');
+  require_once('includes/install/openfed_print.inc');
+  require_once('includes/install/openfed_regional.inc');
+  require_once('includes/install/openfed_sharethis.inc');
+  require_once('includes/install/openfed_sitemap.inc');
+  require_once('includes/install/openfed_seckit.inc');
+  require_once('includes/install/openfed_securelogin.inc');
+  require_once('includes/install/openfed_text_resize.inc');
+  require_once('includes/install/openfed_views.inc');
+  require_once('includes/install/openfed_webform.inc');
+}
+
+/**
+ * UPDATES.
+ */
+
+/**
+ * Add new display mode 'short_references'.
+ */
+function openfed_update_7101() {
+  $view_modes = ds_entity_view_modes('node');
+  if (!array_key_exists('short_reference', $view_modes)) {
+    $view_mode = new stdClass();
+    $view_mode->view_mode = 'short_references';
+    $view_mode->label = 'Short references';
+    $view_mode->entities = array('node' => 'node');
+    drupal_write_record('ds_view_modes', $view_mode);
+  }
+}
+
+/**
+ * Fix issue with ckeditor configuration (#2087599)
+ */
+function openfed_update_7102() {
+  // Update Full settings
+  $settings = db_select('ckeditor_settings', 'c')
+    ->fields('c', array('settings'))
+    ->condition('name', 'Full')
+    ->execute()
+    ->fetchField();
+  $settings = unserialize($settings);
+  $settings['css_path'] = '/profiles/openfed/assets/rte/rte.custom.css';
+  $settings['styles_path'] = '/profiles/openfed/assets/rte/rte.custom.js';
+
+  db_update('ckeditor_settings')
+  ->fields(array(
+    'settings' => serialize($settings),
+  ))
+  ->condition('name', 'Full', '=')
+  ->execute();
+
+  // Update Full settings
+  $settings = db_select('ckeditor_settings', 'c')
+    ->fields('c', array('settings'))
+    ->condition('name', 'Advanced')
+    ->execute()
+    ->fetchField();
+  $settings = unserialize($settings);
+
+  $settings['css_path'] = '/profiles/openfed/assets/rte/rte.custom.css';
+  $settings['styles_path'] = '/profiles/openfed/assets/rte/rte.custom.js';
+
+  db_update('ckeditor_settings')
+  ->fields(array(
+    'settings' => serialize($settings),
+  ))
+  ->condition('name', 'Advanced', '=')
+  ->execute();
+}
+
+/**
+ * Fix #2087517 permissions on the start page
+ */
+function openfed_update_7103() {
+  $roles = array('Builder', 'Configurator', 'Content Manager');
+  $permissions = array('access ofed_switcher administration', 'access ofed_switcher content');
+
+  foreach ($roles as $role_name) {
+    $role = user_role_load_by_name($role_name);
+
+    if (!empty($role->rid)) {
+      // Assign permission to role.
+      user_role_grant_permissions($role->rid, $permissions);
+    }
+  }
+}
+
+
+/**
+ * Fix issue with ckeditor configuration (#2087599) fixing extra space typo
+ */
+function openfed_update_7104() {
+  // Update Full settings
+  $settings = db_select('ckeditor_settings', 'c')
+    ->fields('c', array('settings'))
+    ->condition('name', 'Full')
+    ->execute()
+    ->fetchField();
+  $settings = unserialize($settings);
+  $settings['css_path'] = '/profiles/openfed/assets/rte/rte.custom.css';
+  $settings['styles_path'] = '/profiles/openfed/assets/rte/rte.custom.js';
+
+  db_update('ckeditor_settings')
+  ->fields(array(
+    'settings' => serialize($settings),
+  ))
+  ->condition('name', 'Full', '=')
+  ->execute();
+
+  // Update Full settings
+  $settings = db_select('ckeditor_settings', 'c')
+    ->fields('c', array('settings'))
+    ->condition('name', 'Advanced')
+    ->execute()
+    ->fetchField();
+  $settings = unserialize($settings);
+
+  $settings['css_path'] = '/profiles/openfed/assets/rte/rte.custom.css';
+  $settings['styles_path'] = '/profiles/openfed/assets/rte/rte.custom.js';
+
+  db_update('ckeditor_settings')
+  ->fields(array(
+    'settings' => serialize($settings),
+  ))
+  ->condition('name', 'Advanced', '=')
+  ->execute();
+}
+
+/**
+ * Fix issue #2037961: Store language preference in cookie
+ */
+function openfed_update_7105() {
+  $negotiation = variable_get('language_negotiation_language', array());
+  $negotiation['language-cookie'] = array(
+    'callbacks' => array(
+      'language' => 'locale_cookie_language_from_cookie',
+    ),
+    'file' => drupal_get_path('module', 'locale_cookie') . '/includes/locale_cookie.inc',
+  );
+  variable_set('language_negotiation_language', $negotiation);
+
+  $provider_weight = variable_get('locale_language_providers_weight_language', array());
+  $provider_weight['language-cookie'] = $provider_weight['locale-url'] + 1;
+  variable_set('locale_language_providers_weight_language', $provider_weight);
+
+  // Regional and language > Language > Detection and selection > Cookie.
+  variable_set('locale_cookie_language_negotiation_cookie_param', 'language');
+  variable_set('locale_cookie_language_negotiation_cookie_expire', '365');
+  variable_set('locale_cookie_language_negotiation_cookie_path', '/');
+  variable_set('locale_cookie_language_negotiation_cookie_domain', '');
+  variable_set('locale_cookie_language_negotiation_cookie_secure', 0);
+  variable_set('locale_cookie_language_negotiation_cookie_http_only', 0);
+}
+
+/**
+ * Fix issue #2089775: Why both admin_theme and admin_path
+ */
+function openfed_update_7106() {
+  // If admin path module.
+  // Fetch the paths from administrative pages settings.
+  $admin_path = variable_get('admin_path', array());
+  $admin_path_allowed = array();
+  $admin_path_disallo = array();
+  // If config.
+  if (is_array($admin_path) && !empty($admin_path)) {
+    foreach ($admin_path as $key => $value) {
+      if (!empty($value)) {
+        $admin_path_allowed[$key] = $value;
+      }
+      else {
+        $admin_path_disallo[$key] = 0;
+      }
+    }
+  }
+  // If no config.
+  else {
+    // Get patterns.
+    $patterns = path_get_admin_paths();
+    // Split patterns.
+    $admin_path_allowed = $patterns['admin'];
+    $admin_path_disallo = $patterns['non_admin'];
+    if (!empty($admin_path_allowed)) {
+      $admin_path_allowed = explode("\n", $admin_path_allowed);
+      $admin_path_allowed_tmp = array();
+      foreach ($admin_path_allowed as $key => $value) {
+        $value = trim($value);
+        if (!empty($value)) {
+          $admin_path_allowed_tmp[$value] = TRUE;
+        }
+      }
+      $admin_path_allowed = $admin_path_allowed_tmp;
+    }
+    else {
+      $admin_path_allowed = array();
+    }
+    if (!empty($admin_path_disallo)) {
+      $admin_path_disallo = explode("\n", $admin_path_disallo);
+      $admin_path_disallo_tmp = array();
+      foreach ($admin_path_disallo as $key => $value) {
+        $value = trim($value);
+        if (!empty($value)) {
+          $admin_path_disallo_tmp[$value] = FALSE;
+        }
+      }
+      $admin_path_disallo = $admin_path_disallo_tmp;
+    }
+    else {
+      $admin_path_disallo = array();
+    }
+  }
+
+  // Fetch the paths from administrative theme settings.
+  if (!module_exists('admin_theme')) {
+    module_enable(array('admin_theme'));
+  }
+  $admin_theme_allowed = variable_get('admin_theme_path', '');
+  $admin_theme_disallo = variable_get('admin_theme_path_disallow', '');
+  if (!empty($admin_theme_allowed)) {
+    $admin_theme_allowed = explode("\n", $admin_theme_allowed);
+    $admin_theme_allowed_tmp = array();
+    foreach ($admin_theme_allowed as $key => $value) {
+      $value = trim($value);
+      if (!empty($value)) {
+        $admin_theme_allowed_tmp[$value] = TRUE;
+      }
+    }
+    $admin_theme_allowed = $admin_theme_allowed_tmp;
+  }
+  else {
+    $admin_theme_allowed = array();
+  }
+  if (!empty($admin_theme_disallo)) {
+    $admin_theme_disallo = explode("\n", $admin_theme_disallo);
+    $admin_theme_disallo_tmp = array();
+    foreach ($admin_theme_disallo as $key => $value) {
+      $value = trim($value);
+      if (!empty($value)) {
+        $admin_theme_disallo_tmp[$value] = FALSE;
+      }
+    }
+    $admin_theme_disallo = $admin_theme_disallo_tmp;
+  }
+  else {
+    $admin_theme_disallo = array();
+  }
+
+  // Merge the configuration.
+  $admin_theme_allowed = array_merge($admin_theme_allowed, $admin_path_allowed);
+  $admin_theme_disallo = array_merge($admin_theme_disallo, $admin_path_disallo);
+
+  // Convert array to string.
+  $admin_theme_allowed_tmp = array();
+  foreach ($admin_theme_allowed as $key => $value) {
+    $admin_theme_allowed_tmp[] = $key;
+  }
+  $admin_theme_allowed = implode("\n", $admin_theme_allowed_tmp);
+
+  $admin_theme_disallo_tmp = array();
+  foreach ($admin_theme_disallo as $key => $value) {
+    $admin_theme_disallo_tmp[] = $key;
+  }
+  $admin_theme_disallo = implode("\n", $admin_theme_disallo_tmp);
+
+  // Set the new configuration.
+  variable_set('admin_theme_path', $admin_theme_allowed);
+  variable_set('admin_theme_path_disallow', $admin_theme_disallo);
+}
+
+/**
+ * Fix #2087517 permissions on the start page
+ */
+function openfed_update_7107() {
+  $roles = array('Administrator');
+  $permissions = array('access ofed_switcher administration', 'access ofed_switcher content');
+
+  foreach ($roles as $role_name) {
+    $role = user_role_load_by_name($role_name);
+
+    if (!empty($role->rid)) {
+      // Assign permission to role.
+      user_role_grant_permissions($role->rid, $permissions);
+    }
+  }
+}
+
+/**
+ * Fix #2037961: make sure hook_boot() is invoked in cached pages.
+ */
+function openfed_update_7108() {
+  variable_set('page_cache_invoke_hooks', TRUE);
+  module_disable(array('locale_cookie'), FALSE);
+}
+
+/**
+ * Rebuild the features regarding the OpenFed content types.
+ */
+function openfed_update_7109() {
+  // Check if we still have the old features' structure
+  $modules = db_select('system', 's')
+    ->fields('s')
+    ->condition('name', db_like('ofed_feature') . '%', 'LIKE')
+    ->execute()
+    ->fetchAll();
+
+  if (!empty($modules)) {
+    // Loop through the features to upddate their module schema_version.
+    foreach ($modules as $module) {
+      $module_name = str_replace('ofed_feature_', 'ofed_', $module->name);
+      db_update('system')
+        ->fields(array(
+          'schema_version' => $module->schema_version,
+        ))
+        ->condition('name', $module_name)
+        ->execute();
+    }
+
+    // Rename the node_type's module name
+    db_update('node_type')
+      ->expression('module', 'REPLACE(`module`, :search, :replace)', array(':search' => 'ofed_feature_', ':replace' => 'ofed_'))
+      ->condition('module', db_like('ofed_feature') . '%', 'LIKE')
+      ->execute();
+
+    // Rename the rules_config's module name
+    db_update('rules_config')
+      ->expression('module', 'REPLACE(`module`, :search, :replace)', array(':search' => 'ofed_feature_', ':replace' => 'ofed_'))
+      ->condition('module', db_like('ofed_feature') . '%', 'LIKE')
+      ->execute();
+
+    // Reset the features_codecache variable (rebuild by features).
+    variable_del('features_codecache');
+
+    // Delete the features entires from the system table
+    db_delete('system')
+      ->condition('name', db_like('ofed_feature') . '%', 'LIKE')
+      ->execute();
+
+    // Clear the cache to rebuild the info field ot the system's table
+    cache_clear_all();
+  }
+}
+
+/**
+ * Enable Administration Views
+ */
+function openfed_update_7110() {
+  if (!module_exists('admin_views')) {
+    module_enable(array('admin_views'));
+  }
+}
+
+/**
+ * Enable Administration Views Language feature.
+ * This feature exposes the language filter by default on the content admin page.
+ */
+function openfed_update_7111() {
+  if (!module_exists('ofed_admin_views_language')) {
+    module_enable(array('ofed_admin_views_language'));
+  }
+}
+
+/**
+ * Do nothing.
+ */
+function openfed_update_7112() {
+  // See https://www.drupal.org/node/2446055
+}
+
+/**
+ * Disable autocomplete on login/registration forms.
+ */
+function openfed_update_7113() {
+  if (module_exists('seckit')) {
+    // Get Security Kit options.
+    $options = _seckit_get_options();
+    // Disable autocomplete.
+    $options['seckit_various']['disable_autocomplete'] = 1;
+    variable_set('seckit_various', $options['seckit_various']);
+  }
+}
+
+/**
+ * Re-run previously run update hooks as the openfed profile is
+ * at version 7301 on certain sites.
+ */
+function openfed_update_7302() {
+  openfed_update_7111();
+  openfed_update_7112();
+  openfed_update_7113();
+}
+
+/**
+ * Migrate data from the page_title module, if available.
+ */
+function openfed_update_7303() {
+  if (db_table_exists('page_title')) {
+    if (!module_exists('metatag')) {
+      module_enable(array('metatag'));
+    }
+    $converted = 0;
+    $page_titles = db_select('page_title', 'pt')
+      ->fields('pt', array('type', 'id', 'page_title'))
+      ->execute();
+
+    // Get general metatag config settings.
+    $metatag_config_global = metatag_config_load('global');
+    $metatag_config_node = metatag_config_load('node');
+    $metatag_config_taxonomy_term = metatag_config_load('taxonomy_term');
+    $metatag_config_user = metatag_config_load('user');
+
+    // Loop over each of the page_title records.
+    while ($pt_data = $page_titles->fetchObject()) {
+      // Load any possible existing meta tags for this object.
+      $existing_data = metatag_metatags_load_multiple($pt_data->type, array($pt_data->id));
+      if (!empty($existing_data)) {
+        foreach ($existing_data[$pt_data->id] as $tag => $value) {
+          $existing_data[$pt_data->id] = array(
+            $tag => array(
+              'value' => $value,
+            ),
+          );
+        }
+      }
+
+      // Set metatag page title as per settings.
+      $entity = entity_load($pt_data->type, array($pt_data->id));
+
+      $revision_id = NULL;
+      $langcode = NULL;
+
+      switch ($pt_data->type) {
+        case 'node':
+          $metatag_config_node_type = metatag_config_load('node:' . $entity[$pt_data->id]->type);
+
+          if (!empty($metatag_config_node_type) && isset($metatag_config_node_type->config['title'])) {
+            $title_setting = $metatag_config_node_type->config['title']['value'];
+          }
+          else if (isset($metatag_config_node->config['title'])) {
+            $title_setting = $metatag_config_node->config['title']['value'];
+          }
+          else {
+            $title_setting = $metatag_config_global->config['title']['value'];
+          }
+          $metatag_title = str_replace('[current-page:title]', trim($pt_data->page_title), $title_setting);
+          $metatag_title = str_replace('[node:title]', trim($pt_data->page_title), $metatag_title);
+          $node = node_load($pt_data->id);
+          $revision_id = $node->vid;
+          $langcode = $node->language;
+          break;
+
+        case 'taxonomy_term':
+          $metatag_config_vocabulary_type = metatag_config_load('taxonomy_term:' . $entity[$pt_data->id]->vocabulary_machine_name);
+
+          if (!empty($metatag_config_vocabulary_type) && isset($metatag_config_vocabulary_type->config['title'])) {
+            $title_setting = $metatag_config_vocabulary_type->config['title']['value'];
+          }
+          else if (isset($metatag_config_taxonomy_term->config['title'])) {
+            $title_setting = $metatag_config_taxonomy_term->config['title']['value'];
+          }
+          else {
+            $title_setting = $metatag_config_global->config['title']['value'];
+          }
+          $metatag_title = str_replace('[current-page:title]', trim($pt_data->page_title), $title_setting);
+          $metatag_title = str_replace('[term:name]', trim($pt_data->page_title), $metatag_title);
+          break;
+
+        case 'user':
+          if (isset($metatag_config_user->config['title'])) {
+            $title_setting = $metatag_config_user->config['title']['value'];
+          }
+          else {
+            $title_setting = $metatag_config_global->config['title']['value'];
+          }
+          $metatag_title = str_replace('[current-page:title]', trim($pt_data->page_title), $title_setting);
+          $metatag_title = str_replace('[user:name]', trim($pt_data->page_title), $metatag_title);
+          break;
+      }
+      $existing_data[$pt_data->id]['title']['value'] = $metatag_title;
+
+      metatag_metatags_save($pt_data->type, $pt_data->id, $revision_id, $existing_data[$pt_data->id], $langcode);
+      $converted += db_delete('page_title')
+        ->condition('type', $pt_data->type)
+        ->condition('id', $pt_data->id)
+        ->execute();
+    }
+    drupal_set_message(t('Meta tag: Migrated !count record(s) from the Page Title module.', array('!count' => $converted)));
+  }
+}
+
+/**
+ * Uninstall Page Title module.
+ */
+function openfed_update_7304() {
+  // Clear variables
+  variable_del('page_title_default');
+  variable_del('page_title_individual');
+  variable_del('page_title_front');
+  variable_del('page_title_blog');
+  variable_del('page_title_user');
+  variable_del('page_title_user_showfield');
+  variable_del('page_title_pager_pattern');
+  variable_del('page_title_forum_root_title');
+  variable_del('page_title_comment_reply');
+  variable_del('page_title_comment_child_reply');
+
+  // Clear the node specific variables
+  $types = node_type_get_names();
+  foreach ($types as $type => $name) {
+    variable_del("page_title_type_{$type}");
+    variable_del("page_title_type_{$type}_showfield");
+  }
+
+  // Clear the vocab specific variables
+  if (module_exists('taxonomy')) {
+    $vocabs = taxonomy_get_vocabularies();
+    foreach ($vocabs as $vid => $vocab) {
+      variable_del("page_title_vocab_{$vocab->machine_name}");
+      variable_del("page_title_vocab_{$vocab->machine_name}_showfield");
+
+      // Legacy delete - just in case the uninstall is happening befoer update 7200
+      variable_del("page_title_vocab_{$vid}");
+      variable_del("page_title_vocab_{$vid}_showfield");
+    }
+  }
+}
+
+/**
+ * Revert Administration Views Feature with custom content administration
+ * page in order to show Language and Nid filters. 
+ */
+function openfed_update_7305() {
+  $feature = features_get_features('ofed_admin_views_language');
+  $components = array_keys($feature->info['features']);
+  features_revert(array('ofed_admin_views_language' => $components)); 
+}
+
+/**
+ * Force admin menu language to english.
+ */
+function openfed_update_7306() {
+  variable_set('admin_menu_force_language', 'en');
+}
+
+/**
+ * Force admin jquery version to 1.5 to prevent jquery error on node edit pages.
+ */
+function openfed_update_7307() {
+  variable_set('jquery_update_jquery_admin_version', '1.5');
+}
+
+/**
+ * Disable footer by default in print v2.0 to preserve backward compatibility.
+ */
+function openfed_update_7308() {
+  variable_set('print_footer_options', 0);
+}
+
+/**
+ * Remove linkchecker module (if enabled).
+ */
+function openfed_update_7309() {
+  if (module_exists('linkchecker')) {
+    module_disable(array('linkchecker'));
+    drupal_uninstall_modules(array('linkchecker'));
+    variable_del('linkchecker_action_status_code_301');
+    variable_del('linkchecker_action_status_code_404');
+    variable_del('linkchecker_check_connections_max');
+    variable_del('linkchecker_check_library');
+    variable_del('linkchecker_check_links_interval');
+    variable_del('linkchecker_check_links_types');
+    variable_del('linkchecker_check_useragent');
+    variable_del('linkchecker_cleanup_links_last');
+    variable_del('linkchecker_disable_link_check_for_urls');
+    variable_del('linkchecker_extract_from_a');
+    variable_del('linkchecker_extract_from_audio');
+    variable_del('linkchecker_extract_from_embed');
+    variable_del('linkchecker_extract_from_iframe');
+    variable_del('linkchecker_extract_from_img');
+    variable_del('linkchecker_extract_from_object');
+    variable_del('linkchecker_extract_from_video');
+    variable_del('linkchecker_filter_blacklist');
+    variable_del('linkchecker_ignore_response_codes');
+    variable_del('linkchecker_impersonate_user');
+    variable_del('linkchecker_scan_blocks');
+    variable_del('linkchecker_scan_comments');
+    variable_del('linkchecker_scan_nodetypes');
+  }
+}
+
+/**
+ * Enable admin_menu_content_languages and node_edit_redirect modules.
+ */
+function openfed_update_7310() {
+  if (!module_exists('admin_menu_content_languages')) {
+    module_enable(array('admin_menu_content_languages'));
+  }
+  if (!module_exists('node_edit_redirect')) {
+    module_enable(array('node_edit_redirect'));
+  }
+}
+
+/**
+ * Add language switcher to admin interface.
+ */
+function openfed_update_7311() {
+  $block = array(
+    'module' => 'locale',
+    'delta' => 'language',
+    'theme' => 'cms_theme',
+    'status' => 1,
+    'weight' => 0,
+    'region' => 'tools',
+    'pages' => '',
+    'title' => '<none>',
+    'cache' => -1,
+  );
+
+  $exist = db_select('block', 'b')
+    ->fields('b')
+    ->condition('module', $block['module'])
+    ->condition('delta', $block['delta'])
+    ->condition('theme', $block['theme'])
+    ->execute()
+    ->fetchObject();
+
+  if (empty($exist)) {
+    $query = db_insert('block')
+      ->fields($block);
+  }
+  else {
+    $query = db_update('block')
+      ->fields($block)
+      ->condition('module', $block['module'])
+      ->condition('delta', $block['delta'])
+      ->condition('theme', $block['theme']);
+  }
+  $query->execute();
+}
+
+/**
+ * Enable/disable newly added required modules.
+ */
+function openfed_update_7312() {
+  module_enable(array(
+   'metatag_twitter_cards',
+   'metatag_opengraph',
+   'module_filter',
+   'node_edit_redirect',
+   'admin_menu_content_languages',
+   'menu_link_weight',
+   'hs_menu',
+   // Enable "404 to 403" module.
+   'm4032404',
+  ), TRUE);
+  module_disable(array('backup_migrate'), FALSE);
+}
+
+/**
+ * Set up role delegation.
+ */
+function openfed_update_7313() {
+  // Set up roles delegation module permission.
+  if (module_enable(array('role_delegation'))) {
+    $roles = _role_delegation_roles();
+    $permissions = array();
+    foreach ($roles as $rid => $role) {
+      $permissions["assign $role role"] = TRUE;
+    }
+
+    $updated_roles = array('Builder', 'Configurator', 'User Manager');
+    foreach ($updated_roles as $role) {
+      $web_role = user_role_load_by_name($role);
+      if (!empty($web_role)) {
+        $permissions['administer permissions'] = FALSE;
+        user_role_change_permissions($web_role->rid, $permissions);
+      }
+    }
+  }
+}
+
+/**
+ * Set up 404 to 403.
+ */
+function openfed_update_7314() {
+  variable_set('site_403', 'm4032404');
+}
+
+/**
+ * Enable moderation and revisioning for all content types.
+ */
+function openfed_update_7315() {
+  require_once('includes/misc/openfed_functions.inc');
+  if (!module_exists('workbench_moderation')) {
+    _openfed_workbench_moderation_setup();
+    node_access_rebuild(TRUE);
+  }
+}
+
+/**
+ * Set up admin_language.
+ */
+function openfed_update_7316() {
+  module_enable(array('admin_language'));
+  // Get all roles.
+  $roles = user_roles(TRUE);
+  foreach (array_keys($roles) as $role) {
+    user_role_change_permissions($role, array('display admin pages in another language' => TRUE));
+  }
+  $admin_language_pages = variable_get('admin_language_pages', FALSE);
+  if ($admin_language_pages) {
+    variable_set('admin_language_pages', $admin_language_pages . '\nmedia/ajax/*');
+  }
+  else {
+    variable_set('admin_language_pages', 'admin_menu/*\nfile/ajax/*\nsystem/ajax\nmedia/ajax/*');
+  }
+}
+
+/**
+ * Set up Openfed CMS Adminimal Theme.
+ */
+function openfed_update_7317() {
+  theme_disable(array('cms_theme'));
+  theme_enable(array('adminimal', 'ofed_cms_adminimal'));
+  variable_set('admin_theme', 'ofed_cms_adminimal');
+
+  $block = array(
+    'module' => 'locale',
+    'delta' => 'language',
+    'theme' => 'ofed_cms_adminimal',
+    'status' => 1,
+    'weight' => 0,
+    'region' => 'content_before',
+    'pages' => '',
+    'title' => '<none>',
+    'cache' => -1,
+  );
+
+  $exist = db_select('block', 'b')
+    ->fields('b')
+    ->condition('module', $block['module'])
+    ->condition('delta', $block['delta'])
+    ->condition('theme', $block['theme'])
+    ->execute()
+    ->fetchObject();
+
+  if (empty($exist)) {
+    $query = db_insert('block')
+      ->fields($block);
+  }
+  else {
+    $query = db_update('block')
+      ->fields($block)
+      ->condition('module', $block['module'])
+      ->condition('delta', $block['delta'])
+      ->condition('theme', $block['theme']);
+  }
+  $query->execute();
+}

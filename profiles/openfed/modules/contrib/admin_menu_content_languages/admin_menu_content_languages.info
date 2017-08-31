@@ -1,0 +1,16 @@
+name = Administration menu - Content languages
+description = "Provides a dropdown menu with available languages when adding content for all content types that default to the current language in the Administration menu."
+package = Administration
+core = 7.x
+
+dependencies[] = admin_menu
+testbot_dependencies[] = i18n
+
+files[] = admin_menu_content_languages.test
+
+; Information added by Drupal.org packaging script on 2016-04-28
+version = "7.x-1.0-rc2"
+core = "7.x"
+project = "admin_menu_content_languages"
+datestamp = "1461853110"
+

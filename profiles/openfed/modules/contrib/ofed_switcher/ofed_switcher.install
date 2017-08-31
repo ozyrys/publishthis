@@ -1,0 +1,102 @@
+<?php
+
+/**
+ * @file
+ * Install file for the Site/CMS Switcher.
+ */
+
+/**
+ * Needs to be commented.
+ */
+function ofed_switcher_get_menu_quick_info() {
+  $menu = array();
+  $menu['menu_name'] = "menu-quick-infos";
+  $menu['title'] = "Quick Infos";
+  $menu['description'] = "";
+  return $menu;
+}
+
+/**
+ * Implements hook_install().
+ */
+function ofed_switcher_install() {
+  // Create a Quick Infos Menu.
+  menu_save(ofed_switcher_get_menu_quick_info());
+
+  // Update the menu router information.
+  menu_rebuild();
+
+  // Create a link to google analytics.
+  $item = array(
+    'link_title' => st('Google Analytics'),
+    'link_path' => 'http://www.google.com/analytics/web',
+    'menu_name' => 'menu-quick-infos',
+    'weight' => -50,
+    'options' => array(
+      'attributes' => array(
+        'class' => array(
+          0 => 'icon charts',
+        ),
+        'target' => '_blank',
+      ),
+    ),
+  );
+  menu_link_save($item);
+  $item = array(
+    'link_title' => st('Download CMS Guide'),
+    'link_path' => '<front>',
+    'menu_name' => 'menu-quick-infos',
+    'weight' => -49,
+    'options' => array(
+      'attributes' => array(
+        'class' => array(
+          0 => 'icon pdf',
+        ),
+      ),
+    ),
+  );
+  menu_link_save($item);
+
+  // Create a redirection from cms to cms/startpage
+  if (module_exists('redirect')) {
+    require_once drupal_get_path('module', 'redirect') . '/redirect.module';
+    $redirect = new stdClass();
+    redirect_object_prepare($redirect);
+    $redirect->source = 'cms';
+    $redirect->redirect = 'cms/startpage';
+    // Check if the redirect exists before saving.
+    $hash = redirect_hash($redirect);
+    if (!redirect_load_by_hash($hash)) {
+      redirect_save($redirect);
+    }
+  }
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function ofed_switcher_uninstall() {
+  menu_delete(ofed_switcher_get_menu_quick_info());
+}
+
+
+/**
+ * Fix #2114247: open Google Analytics link a a new tab/window
+ */
+function openfed_update_7001() {
+  $tree = menu_tree('menu-quick-infos');
+  $found = FALSE;
+
+  do {
+    $leaf = current($tree);
+    $found = (strpos($leaf['#href'], 'http://www.google.com/analytics') !== FALSE) ? key($tree) : FALSE;
+  } while (!$found && next($tree));
+
+  if ($found) {
+    $link = menu_link_load($found);
+    $link['options']['attributes']['target'] = '_blank';
+    $link['href'] = 'http://www.google.com/analytics/web';
+    $link['link_path'] = 'http://www.google.com/analytics/web';
+    menu_link_save($link);
+  }
+}

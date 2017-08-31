@@ -1,0 +1,40 @@
+.field-name-field-ofed-video-link								{
+	border: 1px solid #E1DED7;
+	background: #F4F4F3;
+	padding: 10px 10px 10px 10px;
+	margin-bottom:10px;
+}
+
+.field-name-field-ofed-video-link .label-above					{
+	text-decoration: underline;
+}
+
+.field-name-field-ofed-video-link .label-above					{
+	font-weight: 600;
+	font-size: 1.1em;
+	padding-bottom: 10px;
+	display:block;
+}
+
+.view-display-id-ofed_video_block_column .views-row			{
+	float:left;    
+	width:33%;
+}
+
+.view-display-id-ofed_video_block_column:before,
+.view-display-id-ofed_video_block_column:after				{
+  display: table;
+  content: " ";
+  line-height: 0;
+  clear: both;
+}
+@media 	handheld,											/* Only Opera Mobile is compliant for the moment*/
+		only screen and (max-device-width:767px),			/* Only for smartphone screen */
+		only screen and (max-width:767px)
+{
+	.view-display-id-ofed_video_block_column .views-row	{
+		display: block;
+		float: none;
+		width: auto;
+	}
+}
