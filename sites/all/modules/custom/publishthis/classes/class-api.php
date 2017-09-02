@@ -164,7 +164,7 @@ class Publishthis_API extends Publishthis_API_Common {
    * @param unknown $key Option key
    * @return Option value
    */
-  public function get_template_option( $params = array() ) {
-    return $this->get_feed_templates( $params );
+  public function get_template_option() {
+    return $this->get_html_templates();
   }
 }
