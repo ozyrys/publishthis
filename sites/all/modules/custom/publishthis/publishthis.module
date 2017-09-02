@@ -317,14 +317,6 @@ function publishthis_administer_access($op){
  */
 function publishthis_theme() {
   return array(
-    'publishthis_block' => array(
-      'variables' => array(
-        'content' => NULL
-      ),
-      'file' =>  'blocks/publishthis.block.inc',
-      'template' => 'blocks/publishthis-block',
-      'file path' => drupal_get_path('module', 'publishthis') . '/blocks'
-    ),
     'powered_by_publishthis' => array(
       'variables' => array( 'content' => NULL ),
     ),
