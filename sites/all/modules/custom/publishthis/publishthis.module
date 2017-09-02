@@ -178,6 +178,20 @@ function reset_client_info() {
   cache_set('pt_client_info', $pt_client_info, 'cache', $expire );
   return $pt_client_info;
 }
+
+/**
+ * Publishthis permissions
+ * Implementation of hook_permission
+ */
+function publishthis_permission() {
+  return array(
+    'administer publishthis module' => array(
+      'title' => t('Administer publishThis module'),
+      'description' => t('Allow users to access publishThis settings page'),
+    ),
+  );
+}
+
 /**
  * Publishthis menu items
  * Implementation of hook_menu
@@ -197,7 +211,8 @@ function publishthis_menu() {
     'description' => 'Configure PublishThis Curation Module',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('publishthis_settings'),
-    'access arguments' => array('administer site configuration'),
+    'access callback' => 'publishthis_administer_access',
+    'access arguments' => array('administer'),
     'file' => 'publishthis.admin.settings.inc',
     'file path' => drupal_get_path('module', 'publishthis') . '/admin'
   );
@@ -206,7 +221,8 @@ function publishthis_menu() {
     'title' => 'Publishing Actions',
     'type' => MENU_LOCAL_TASK,
     'page callback' => array('publishthis_publishingactions'),
-    'access arguments' => array('administer site configuration'),
+    'access callback' => 'publishthis_administer_access',
+    'access arguments' => array('administer'),
     'file' => 'publishthis.admin.publishingactions.inc',
     'file path' => drupal_get_path('module', 'publishthis') . '/admin'
   );  
@@ -216,7 +232,8 @@ function publishthis_menu() {
     'type' => MENU_CALLBACK,
     'page callback' => 'drupal_get_form',
     'page arguments' => array('publishthis_addnew_publishingactions'),
-    'access arguments' => array('administer site configuration'),
+    'access callback' => 'publishthis_administer_access',
+    'access arguments' => array('administer'),
     'file' => 'publishthis.admin.publishingactions.inc',
     'file path' => drupal_get_path('module', 'publishthis') . '/admin',
   );
@@ -226,7 +243,8 @@ function publishthis_menu() {
     'type' => MENU_CALLBACK,
     'page callback' => 'drupal_get_form',
     'page arguments' => array('edit_publishthis_publishing_actions'),
-    'access arguments' => array('administer site configuration'),
+    'access callback' => 'publishthis_administer_access',
+    'access arguments' => array('administer'),
     'file' => 'publishthis.admin.publishingactions.inc',
     'file path' => drupal_get_path('module', 'publishthis') . '/admin',
   );
@@ -235,7 +253,8 @@ function publishthis_menu() {
     'title' => 'Publishing Actions Delete',
     'type' => MENU_CALLBACK,
     'page callback' => 'delete_publishthis_publishing_actions',
-    'access arguments' => array('administer site configuration'),
+    'access callback' => 'publishthis_administer_access',
+    'access arguments' => array('administer'),
     'file' => 'publishthis.admin.publishingactions.inc',
     'file path' => drupal_get_path('module', 'publishthis') . '/admin',
   );
@@ -246,7 +265,8 @@ function publishthis_menu() {
     'type' => MENU_LOCAL_TASK,
     'page callback' => 'drupal_get_form',
     'page arguments' => array('publishthis_styleoptions'),
-    'access arguments' => array('administer site configuration'),
+    'access callback' => 'publishthis_administer_access',
+    'access arguments' => array('administer'),
     'file' => 'publishthis.admin.styleoptions.inc',
     'file path' => drupal_get_path('module', 'publishthis') . '/admin'
   );
@@ -255,7 +275,8 @@ function publishthis_menu() {
     'title' => 'Publishing Log',
     'type' => MENU_LOCAL_TASK,
     'page callback' => 'publishthis_log_messages',
-    'access arguments' => array('administer site configuration'),
+    'access callback' => 'publishthis_administer_access',
+    'access arguments' => array('administer'),
     'file' => 'publishthis.admin.logmessages.inc',
     'file path' => drupal_get_path('module', 'publishthis') . '/admin',
     'weight' => 10
@@ -265,7 +286,8 @@ function publishthis_menu() {
     'title' => 'Log Messages Delete',
     'type' => MENU_CALLBACK,
     'page callback' => 'publishthis_log_messages_delete',
-    'access arguments' => array('administer site configuration'),
+    'access callback' => 'publishthis_administer_access',
+    'access arguments' => array('administer'),
     'file' => 'publishthis.admin.logmessages.inc',
     'file path' => drupal_get_path('module', 'publishthis') . '/admin',
   );
@@ -274,92 +296,32 @@ function publishthis_menu() {
     'title' => 'Export Log Messages',
     'type' => MENU_CALLBACK,
     'page callback' => 'publishthis_log_messages_export',
-    'access arguments' => array('administer site configuration'),
+    'access callback' => 'publishthis_administer_access',
+    'access arguments' => array('administer'),
     'file' => 'publishthis.admin.logmessages.inc',
     'file path' => drupal_get_path('module', 'publishthis') . '/admin',
   );
   
   return $items;
 }
-/*
-function publishthis_block_info(){
-   
-  $blocks = array();
 
-  $blocks['pt_block_feeds'] = array( 'info' => t('PublishThis: Automated Feed Content'),
-                                     'status' => 1,
-                                     'cache' =>  DRUPAL_NO_CACHE );
-  $blocks['pt_block_savedsearches'] = array( 'info' => t('PublishThis: Automated Saved Searches Content'),
-                                             'status' => 1,
-                                             'cache' => DRUPAL_NO_CACHE );
-  $blocks['pt_block_tweets'] = array( 'info' => t('PublishThis: Automated Tweet Content'),
-                                      'status' => 1,
-                                      'cache' => DRUPAL_NO_CACHE );
-  $blocks['pt_block_topics'] = array( 'info' => t('PublishThis: Automated Topic Content'),
-                                      'status' => 1,
-                                      'cache' => DRUPAL_NO_CACHE );
-
-  return $blocks;
-}
-
-function publishthis_block_configure($delta = '') {
-  
-  if( in_array( $delta, array('pt_block_feeds') ) ) {
-    $form['pt_block_num_results'] = array(
-      '#type' => 'select',
-      '#title' => t('Number of Results to Display'),
-      '#default_value' => variable_get($delta . '_num_results', 5),
-      '#options' => drupal_map_assoc(array( 5, 10, 15, 20, 25, 30 )),
-    );
-    return $form;
-  } 
-}
-
-function publishthis_block_save($delta = '', $edit = array()) {
-  
-  if( in_array( $delta, array('pt_block_feeds') ) ) {
-    variable_set( $delta . '_num_results', $edit['pt_block_num_results']);
-  }
-  return;
-}
-*/
 /**
- * Implements hook_block_view().
+ * Add administer publishThis access callback
  */
-/*
-function publishthis_block_view($delta = '') {
+function publishthis_administer_access($op){
 
-  $blocks = array();
-  switch( $delta ) {
-
-    case 'pt_block_feeds':
-      $blocks['subject'] = 'Automated Feed Content';
-     break;
-
-    case 'pt_block_savedsearches':
-      $blocks['subject'] = 'Automated Saved Searches Content';
+  switch ($op) {
+    case 'administer':
+      // Return true, if one of these permissions is granted
+      if (user_access('administer site configuration') || user_access('administer publishthis module')) {
+        return TRUE;
+      }
       break;
-
-    case 'pt_block_tweets':
-      $blocks['subject'] = 'Automated Tweet Content';
-      break;
-
-    case 'pt_block_topics':
-      $blocks['subject'] = 'Automated Topic Content';
-      break;
-
-    case 'pt_block_poweredby':
-      $blocks['subject'] = NULL;
-      $blocks['content'] = theme('powered_by_publishthis');
-      break;
-
-    default: break;
   }
-  $blocks['content'] = theme('publishthis_block', array('content' => "{$blocks['subject']}"));
-  
-  return $blocks;
+  return FALSE; // default
+
 }
-*/
+
 /**
  * Setup module blocks
  * 
