@@ -90,7 +90,7 @@ abstract class Publishthis_Utils_Common {
 	 * @param integer $intHeight         Output image height size (optional)
 	 * @return Url for resized image
 	 */
-	function getResizedPhotoUrl( $originalUrl, $intWidth, $okToResizePreview, $intHeight=0, $okToIgnoreOriginalImageSize="1" ) {
+	function getResizedPhotoUrl( $originalUrl, $intWidth, $okToResizePreview, $intHeight=0, $okToIgnoreOriginalImageSize="1", $upToMaxWidth="0") {
 		$returnUrl = '';
 		// first see if this url is from publishthis
 		$isPTImage = strrpos( $originalUrl, "publishthis.com" );
@@ -112,6 +112,7 @@ abstract class Publishthis_Utils_Common {
 				$tmpImageUrl = str_replace("_original_","_thumbnail_",$tmpImageUrl);			
 			}
 		}
+		
     
 		$attachSizes = array();
 		$width = $this->getPhotoWidthByURL( $tmpImageUrl, $intWidth, $okToIgnoreOriginalImageSize );
@@ -131,8 +132,12 @@ abstract class Publishthis_Utils_Common {
 			}
 		}
 
+		if( $upToMaxWidth == "1" ) {
+			$attachSizes[] = "fitWithinMaxWidth=1";
+		}
+
 		$returnUrl = $tmpImageUrl;
-		if( count( $attachSizes ) > 0 ) {
+		if( count( $attachSizes ) > 0 ) {			
 			$returnUrl .= "?" . implode( "&", $attachSizes );
 		}
 
@@ -148,7 +153,7 @@ abstract class Publishthis_Utils_Common {
 	function getPhotoCaptionWidth( $originalUrl, $intMaxWidth ) {
 		$width = $this->getPhotoWidthByURL( $originalUrl, $intMaxWidth );
 
-		return ( $width > 0 ) ? $width : Publishthis_Utils_Common::$defaultPhotoWidth;
+		return ( $width > 0 ) ? $width : Publishthis_Utils::$defaultPhotoWidth;
 	}
 
 	/**
@@ -161,7 +166,7 @@ abstract class Publishthis_Utils_Common {
 	 * @param unknown $intMaxWidth Output image max size
 	 * @return Image width. -1 means resizing is not required
 	 */
-	function getPhotoWidthByURL( $originalUrl, $intMaxWidth,$okToIgnoreOriginalImageSize='1' ) {
+	function getPhotoWidthByURL( $originalUrl, $intMaxWidth, $okToIgnoreOriginalImageSize='1' ) {
 		/**
 		 * thumbnail is 120x90
 		 *
@@ -172,13 +177,13 @@ abstract class Publishthis_Utils_Common {
 		 * xlarge - larger
 		 */
 
-		if ( $intMaxWidth == Publishthis_Utils_Common::$defaultPhotoWidth ) {
+		if ( $intMaxWidth == Publishthis_Utils::$defaultPhotoWidth ) {
 			return -1;
 		}
 
 		// if it is smaller than our thumbnail, doesn't really matter
 		// just return the resized image
-		if ( $intMaxWidth < Publishthis_Utils_Common::$defaultPhotoWidth ) {
+		if ( $intMaxWidth < Publishthis_Utils::$defaultPhotoWidth ) {
 			return $intMaxWidth;
 		}
 
@@ -245,13 +250,13 @@ abstract class Publishthis_Utils_Common {
 		 * xlarge - larger
 		 */
 
-		if ( $intMaxHeight == Publishthis_Utils_Common::$defaultPhotoHeight ) {
+		if ( $intMaxHeight == Publishthis_Utils::$defaultPhotoHeight ) {
 			return -1;
 		}
 
 		// if it is smaller than our thumbnail, doesn't really matter
 		// just return the resized image
-		if ( $intMaxHeight < Publishthis_Utils_Common::$defaultPhotoHeight ) {
+		if ( $intMaxHeight < Publishthis_Utils::$defaultPhotoHeight ) {
 			return $intMaxHeight;
 		}
 
@@ -348,8 +353,6 @@ abstract class Publishthis_Utils_Common {
 			$image = "curatedwith-box-white.png";
 			break;
 		case '4':
-			$image = "justpt-small-transparent.png";
-			break;
 		case '5':
 			$image = "curatedwith-small-transparent.png";
 			break;
@@ -366,20 +369,14 @@ abstract class Publishthis_Utils_Common {
 	/**
 	 *   Build dynamic styles
 	 */
-	function display_css($wrap=true) {
-		$style = '';
-
-		if($wrap) {
-			$style .= '<style type="text/css">';
-		}
+	function display_css() {
+		$style = '<style type="text/css">';
 
 		foreach ($this->css_sections as $section_key => $section_title) {
 			$style .= $this->build_style( $section_key );
 		}
 
-		if($wrap) {
-			$style .= '</style>';
-		}
+		$style .= '</style>';
 		return $style;
 	}
 
@@ -465,15 +462,15 @@ abstract class Publishthis_Utils_Common {
 			$css_class = str_replace('_', '-', $key);
 			switch ($css_class) {
 				case 'title':
-					$return_style = "p.pt-".$css_class.", h4.pt-".$css_class." {" . $style . "}\n";
-					$return_style .= "p.pt-".$css_class.">a, h4.pt-".$css_class.">a {border:none !important;}\n";
+					$return_style = "p.pt-".$css_class.", h4.pt-".$css_class." {" . $style . "}\n";					
 					$return_style .= "p.pt-".$css_class." a, h4.pt-".$css_class." a {" . $style . "}\n";
+					$return_style .= "p.pt-".$css_class.">a, h4.pt-".$css_class.">a {border:none !important;background-color:transparent;}\n";
 					break;
 
 				case 'readmore':
-					$return_style = "p.pt-".$css_class.", div.pt-".$css_class." {" . $style . "}\n";
-					$return_style .= "p.pt-".$css_class.">a, div.pt-".$css_class.">a {border:none !important;}\n";
+					$return_style = "p.pt-".$css_class.", div.pt-".$css_class." {" . $style . "}\n";					
 					$return_style .= "p.pt-".$css_class." a, div.pt-".$css_class." a {" . $style . "}\n";
+					$return_style .= "p.pt-".$css_class.">a, div.pt-".$css_class.">a {border:none !important;background-color:transparent;}\n";
 					break;
 				
 				default: 
@@ -498,52 +495,12 @@ abstract class Publishthis_Utils_Common {
 
 	function build_url_with_tracking( $url, $feedId, $isCurated, $docId, $contentType, $widgetType='' ) {
 
-		if ( !empty( $url ) ) {
-			if ( strpos( $url , "#" ) > 0 ) {
-				//right now, no good way to get past urls that all ready have hash anchors
-				return $url;
-			}
 
-			//great, build our own hash anchor for tracking purposes.
-			$hashTracking = "";
+		return $url; //no longer need to return url based tracking items
 
-			if ( !empty( $feedId ) ) {
-				$hashTracking .= "fid=" . urlencode($feedId);
-				$hashTracking .= "&";
-			}
-
-			if ( !empty( $isCurated ) ) {
-				$hashTracking .= "isc=" . urlencode($isCurated);
-				$hashTracking .= "&";
-			}
-
-			if ( !empty( $docId ) ) {
-				$hashTracking .= "did=" . urlencode( $docId );
-				$hashTracking .= "&";
-			}
-
-			if ( !empty( $contentType ) ) {
-				$hashTracking .= "ctp=" . urlencode($contentType);
-				$hashTracking .= "&";
-			}
-			
-			if ( !empty( $widgetType ) ) {
-				$hashTracking .= "wtp=" . urlencode($widgetType);
-				$hashTracking .= "&";
-			}
-			
-			if ( empty( $hashTracking ) ) {
-				return $url;
-			}else {
-				//remove the end &
-				$hashTracking = rtrim( $hashTracking, "&" );
-	//			return $url . "#ptlink." . $hashTracking; /* Update the HTML generation. */
-				return $url;
-			}
-
-		}
-		return $url;
 	}
 	
+	
+		
 	
 }
