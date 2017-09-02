@@ -14,13 +14,13 @@ $env = trim( file_get_contents( dirname( __FILE__ ) . '/environment' ) );
 
 if ( $env == 'dev' ) {
   if(!defined("AUTO_UPDATE_JSON_INFO")) define( "AUTO_UPDATE_JSON_INFO", "http://static.dev.publishthis.com/wpplugin/last/pluginInfo.json" );
-  if(!defined("PT_API_URL_3_0")) define( "PT_API_URL_3_0", "http://webapi.dev.publishthis.com/rest" );
+  if(!defined("PT_API_URL_3_0")) define( "PT_API_URL_3_0", "http://api.dev.publishthis.com/rest" );
   if(!defined("MANAGER_API_URL")) define( "MANAGER_API_URL", "https://manager.dev.publishthis.com/services/ex/auth/" );
   if(!defined("GA_TRACKING_URL")) define( "GA_TRACKING_URL", "http://static.dev.publishthis.com/analytics/last/analytics.js" );
 }
 else {
   if(!defined("AUTO_UPDATE_JSON_INFO")) define( "AUTO_UPDATE_JSON_INFO", "http://static.publishthis.com/wpplugin/last/pluginInfo.json" );
-  if(!defined("PT_API_URL_3_0")) define( "PT_API_URL_3_0", "http://webapi.publishthis.com/rest" );
+  if(!defined("PT_API_URL_3_0")) define( "PT_API_URL_3_0", "http://api.publishthis.com/rest" );
   if(!defined("MANAGER_API_URL")) define( "MANAGER_API_URL", "https://manager.publishthis.com/services/ex/auth/" );
   if(!defined("GA_TRACKING_URL")) define( "GA_TRACKING_URL", "http://static.publishthis.com/analytics/last/analytics.js" );
 }
