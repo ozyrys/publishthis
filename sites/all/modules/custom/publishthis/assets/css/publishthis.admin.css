@@ -22,9 +22,6 @@ fieldset.horizontal-list div.form-item.form-type-select>label { float: left; wid
 .field_inline .form-checkboxes .form-type-checkbox { float: left; margin-right: 15px; }
 .margins .form-type-select label, .paddings .form-type-select label {  float: left; padding-right: 10px; }
 .margins .form-type-select, .paddings .form-type-select, { width: 110px;}
-.form-type-jquery-colorpicker { float: left; margin-top: 18px !important; width: 139px;}
-.form-type-jquery-colorpicker label {display: inline; float: right; font-weight: normal; padding-right: 16px !important; padding-top: 6px !important;}
-.form-type-jquery-colorpicker .jquery_colorpicker { float: left; }
 
 .form-item-pt-style-title-font-style-custom-bold label { font-weight: bold;}
 .form-item-pt-style-title-font-style-custom-italic label {font-style: italic;}

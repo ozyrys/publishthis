@@ -258,18 +258,6 @@ function publishthis_menu() {
     'file' => 'publishthis.admin.publishingactions.inc',
     'file path' => drupal_get_path('module', 'publishthis') . '/admin',
   );
-
-  
-  $items['admin/config/system/publishthis/style-options'] = array(
-    'title' => 'Style Options',
-    'type' => MENU_LOCAL_TASK,
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array('publishthis_styleoptions'),
-    'access callback' => 'publishthis_administer_access',
-    'access arguments' => array('administer'),
-    'file' => 'publishthis.admin.styleoptions.inc',
-    'file path' => drupal_get_path('module', 'publishthis') . '/admin'
-  );
   
   $items['admin/config/system/publishthis/log-messages'] = array(
     'title' => 'Publishing Log',
