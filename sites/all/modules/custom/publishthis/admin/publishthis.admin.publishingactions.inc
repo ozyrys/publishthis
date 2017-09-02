@@ -80,11 +80,11 @@ function publishthis_addnew_publishingactions($form, &$form_state) {
 
   // Find first templateId value from AOI to show dropdown, if none option saved in database
   if (!empty($template_APIdata)) {
-	$default_templateId = $template_APIdata[0]->templateId;
+	  $default_templateId = $template_APIdata[0]->id;
   }
 
   // Get the list of options to populate the Feed template dropdown.
-  $template_options = _get_feed_template_options($template_APIdata);
+  $template_options = _get_template_options($template_APIdata);
 
   // Edit Action
   if (arg(4) == 'publishing-editactions' && is_numeric($edit_id)) {
@@ -183,26 +183,11 @@ function publishthis_addnew_publishingactions($form, &$form_state) {
   // parameter to pass to the funct that retrieves the options for the
   // Template Section.
   if (!empty($pt_value['feed_template'])) {
-	$selected = $pt_value['feed_template'];
+	  $selected = $pt_value['feed_template'];
   }
   else {
-	$selected = isset($form_state['values']['feed_template']) ? $form_state['values']['feed_template'] : $default_templateId;
+	  $selected = isset($form_state['values']['feed_template']) ? $form_state['values']['feed_template'] : $default_templateId;
   }
-// pa($pt_value,1);
-  $form[$group]['feed_template'] = array(
-	'#type'          => 'select',
-	'#title'         => 'Feed Template',
-	'#options'       => $template_options,
-	'#default_value' => $selected,
-	// Bind an ajax callback to the change event (which is the default for the
-	// select form type) of the first dropdown. It will replace the second
-	// dropdown when rebuilt
-	'#ajax'          => array(
-	  'event'    => 'change',
-	  'callback' => 'ajax_dependent_dropdown_callback',
-	  'wrapper'  => 'form-wrapper',
-	),
-  );
 
   $form[$group]['template_section'] = array(
 	'#type'          => 'select',
@@ -213,7 +198,7 @@ function publishthis_addnew_publishingactions($form, &$form_state) {
 	'#suffix'        => '</div>',
 	// when the form is rebuilt during ajax processing, the $selected variable
 	// will now have the new value and so the options will change
-	'#options'       => _ajax_get_template_section_dropdown_options($selected, $template_APIdata),
+	'#options'       => $template_options,
 	'#default_value' => isset($pt_value['template_section']) ? $pt_value['template_section'] : ''
   );
 
@@ -604,112 +589,18 @@ function ajax_category_dropdown_callback($form, $form_state) {
  *
  * @return array of options
  */
-function _get_feed_template_options($api_template = array()) {
+function _get_template_options($api_template = array()) {
 
   if (!empty($api_template)) {
 	// API feed template result
 
 	foreach ($api_template as $tempval) {
 	  // feed template
-	  $template[$tempval->templateId] = $tempval->displayName;
+	  $template[$tempval->id] = $tempval->templateName;
 	}
   }
 
   return $template;
-}
-
-
-/**
- * Helper func to populate the second dropdown.
- *
- * @param $key
- *   This will determine which set of options is returned.
- *
- * @return array of options
- */
-function _ajax_get_template_section_dropdown_options($key = '', $template = array()) {
-
-  if (!empty($template)) {
-	// API feed template result
-
-	foreach ($template as $tempval) {
-
-	  // template section
-	  if (($tempval->templateId == $key)) {
-		foreach ($tempval->templateSections as $temSection) {
-		  $template_section[$temSection->sectionId] = $temSection->displayName;
-		}
-	  }
-	}
-	return $template_section;
-
-  }
-  else {
-	return array();
-  }
-}
-
-/**
- * Find Vocabulary list options
- *
- * @param $key
- *  This will determine which set of options is returned.
- *
- * @return array of options
- */
-function _ajax_get_taxonomy_dropdown_options($key = '') {
-  if (!empty($key)) {
-
-	// Get taxonomy
-	$vocabularies = taxonomy_get_vocabularies();
-	foreach ($vocabularies as $voc) {
-	  $categories[$voc->machine_name] = $voc->name;
-	}
-	return $categories;
-
-  }
-  else {
-	return array('default_category' => 'Drupal Default');
-  }
-}
-
-/**
- * Select category option dropdown to be returned for re-rendering
- *
- * @return renderable array (the second dropdown)
- */
-function _ajax_taxonomies_dropdown_callback($form, $form_state) {
-  return $form['options']['taxonomy_group'];
-}
-
-/**
- * Helper func to populate the category dropdown.
- *
- * @param $key
- *   This will determine which set of options is returned.
- *
- * @return array of options
- */
-function _ajax_get_template_category_dropdown_options($key = '', $template = array()) {
-
-  if (!empty($template)) {
-	// API feed template result
-	$template_category = array('' => 'Do not categorize');
-	foreach ($template as $tempval) {
-
-	  // template section
-	  if (($tempval->templateId == $key) && isset($tempval->templateFields)) {
-		foreach ($tempval->templateFields as $temSection) {
-		  $template_category[$temSection->shortCode] = $temSection->displayName;
-		}
-	  }
-	}
-	return $template_category;
-
-  }
-  else {
-	return array();
-  }
 }
 
 /**
