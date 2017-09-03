@@ -18,7 +18,7 @@ function publishthis_init() {
     $pt_client_info = reset_client_info();
   }
   // Create a taxonomy field and use the taxonomy entity we created earlier
- // Add the field to the content type as a HTML select box.
+  // Add the field to the content type as a HTML select box.
 
 
   // Include common settings file
@@ -27,8 +27,8 @@ function publishthis_init() {
 
 
   if(!empty($pt_settings_value['styling']['enable_styling'])){
-     drupal_add_css(drupal_get_path('module', 'publishthis') . '/assets/css/publishthis.general.css', array('group' => CSS_DEFAULT, 'every_page' => TRUE));
-   }
+    drupal_add_css(drupal_get_path('module', 'publishthis') . '/assets/css/publishthis.general.css', array('group' => CSS_DEFAULT, 'every_page' => TRUE));
+  }
 
 
   if(isset($pt_settings_value['endpoint']) && !empty($pt_settings_value['endpoint'])){
@@ -49,13 +49,15 @@ function publishthis_init() {
   //Add Tweeter widget js
   drupal_add_js( 'http://platform.twitter.com/widgets.js' );
 }
+
 function publishthis_preprocess_html(&$variables) {
-// Add conditional stylesheets for admin pages on admin theme.
+  // Add conditional stylesheets for admin pages on admin theme.
   if (arg(0)=="admin") {
     // reference your current admin theme
     drupal_add_css(drupal_get_path('module', 'publishthis') . '/assets/css/publishthis.admin.css');
   }
 }
+
 /**
  * Get tid from term name
  *
@@ -169,6 +171,7 @@ function _image_size_fields($name, $prefix = '', $pt_value = array()) {
 
   return $form;
 }
+
 function reset_client_info() {
   $objApi = new Publishthis_API();
   $pt_client_info = $objApi->get_client_info();
