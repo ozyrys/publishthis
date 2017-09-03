@@ -45,6 +45,8 @@ function publishthis_init() {
 
   // common js
   drupal_add_js(drupal_get_path('module', 'publishthis') . '/assets/js/publishthis.js');
+  //Add Tweeter widget js
+  drupal_add_js( 'http://platform.twitter.com/widgets.js' );
 }
 
 function publishthis_preprocess_html(&$variables) {
