@@ -247,7 +247,7 @@ class Publishthis_Endpoint {
 		  $this->actionVerify();
 		  break;
 		case "publish":
-		  $feedId = intval($arrEndPoint["feedId"], 10);
+		  $feedId = intval($arrEndPoint["postId"], 10);
 		  $this->actionPublish($feedId);
 		  break;
 		case "getAuthors":
