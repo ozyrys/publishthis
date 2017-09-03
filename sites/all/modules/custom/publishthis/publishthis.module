@@ -314,37 +314,6 @@ function publishthis_administer_access($op){
 }
 
 /**
- * Setup module blocks
- * 
- * Implements hook_theme().
- */
-function publishthis_theme() {
-  return array(
-    'powered_by_publishthis' => array(
-      'variables' => array( 'content' => NULL ),
-    ),
-  );
-}
-
-/**
- * Returns HTML for the Powered by curated publishthis logo
- *
- * @ingroup themeable
- */
-function theme_powered_by_publishthis() {
-  
-  // Settings value
-  $logo_settings = unserialize(variable_get('pt_settings'));  
-  // Check curated option for footer
-  if( isset($logo_settings['curatedby']) && $logo_settings['curatedby'] == 'footer' ) {
-    
-    $image_path = 'http://img.publishthis.com/images/ptbuttons/'.$logo_settings['curatedby_logos'];    
-    return '<span> <img src="'. $image_path.'" alt="publishthis" /> </span>';
-    
-  }
-}
-
-/**
  * Generate random endpoint
  */
 function getRandomWord($len = 10) {

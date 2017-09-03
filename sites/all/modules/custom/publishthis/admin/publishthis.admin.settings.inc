@@ -15,12 +15,6 @@ function publishthis_settings($form, &$form_state) {
   // Find client info
   $client = $pt_client_info;
 
-  // Curatedby Logo
-  $allowDisableLogo = '';
-  if (is_object($client) && !empty($client)) {
-	  $allowDisableLogo = $client->allowDisableLogo;
-  }
-
   // Unserialize saved values
   $pt_value = unserialize(variable_get('pt_settings'));
 
@@ -100,46 +94,6 @@ function publishthis_settings($form, &$form_state) {
 	  '#description'   => t('')
   );
 
-  // Curatedby Logo display options
-  $logo_options = array('footer' => t('Footer'), 'page' => t('Page'));
-
-  // Check allowDisableLogo flag value,
-  // return TRUE, logo option show 'Do not display logo', FLASE not display
-  if ($allowDisableLogo == 1) {
-	  $logo_options = array_merge($logo_options, array('none' => t('Do not display logo')));
-	  $curated_value = !empty($pt_value['curatedby']) ? $pt_value['curatedby'] : 'footer';
-  }
-  else {
-	  if (!empty($pt_value['curatedby']) && ($pt_value['curatedby'] == 'none')) {
-	    $curated_value = 'footer';
-	  }
-	  else {
-	    $curated_value = !empty($pt_value['curatedby']) ? $pt_value['curatedby'] : 'footer';
-	  }
-  }
-
-  $form['pt_settings']['curatedby']       = array(
-	  '#type'          => 'radios',
-	  '#title'         => t('Show PublishThis logo in'),
-	  '#attributes'    => array('class' => array('horizontal-list')),
-	  '#default_value' => $curated_value,
-	  '#options'       => $logo_options,
-	  '#description'   => t('')
-  );
-  $form['pt_settings']['curatedby_logos'] = array(
-	  '#type'          => 'radios',
-	  '#title'         => t('Logo Options'),
-	  '#attributes'    => array('class' => array('horizontal-list')),
-	  '#default_value' => 'curatedwith-box-darkgray.png',
-	  '#options'       => array(
-	    1 => t('<img alt="Publishthis Curated By Logo Black" src="' . $objUtils->getCuratedByLogoImage(1) . '">'),
-	    2 => t('<img alt="Publishthis Curated By Logo Gray" src="' . $objUtils->getCuratedByLogoImage(2) . '">'),
-	    3 => t('<img alt="Publishthis Curated By Logo White" src="' . $objUtils->getCuratedByLogoImage(3) . '">'),
-	    5 => t('<img alt="Publishthis Curated By Logo Medium" src="' . $objUtils->getCuratedByLogoImage(5) . '">')
-	  ),
-	  '#default_value' => isset($pt_value['curatedby_logos']) ? $pt_value['curatedby_logos'] : "1",
-	  '#description'   => t('')
-  );
   $form['pt_settings']['pt_token']        = array(
 	  '#type'        => 'fieldset',
 	  '#title'       => t('API Token'),
