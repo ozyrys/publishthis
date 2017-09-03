@@ -247,10 +247,6 @@ class Publishthis_Endpoint {
 		  $this->actionVerify();
 		  break;
 		case "publish":
-		  if ($pt_settings_value['curated_publish'] != 'publishthis_import_from_manager') {
-			$this->sendFailure("Publishing through CMS is disabled");
-			return;
-		  }
 		  $feedId = intval($arrEndPoint["feedId"], 10);
 		  $this->actionPublish($feedId);
 		  break;

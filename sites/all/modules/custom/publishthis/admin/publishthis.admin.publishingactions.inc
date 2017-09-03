@@ -141,29 +141,6 @@ function publishthis_addnew_publishingactions($form, &$form_state) {
 	'#attributes'  => array('class' => array('pt-options')),
   );
 
-  $interval = array(
-	'60'    => '1 min',
-	'300'   => '5 min',
-	'600'   => '10 min',
-	'900'   => '15 min',
-	'1800'  => '30 min',
-	'2700'  => '45 min',
-	'3600'  => '60 min',
-	'7200'  => '2 hrs',
-	'21600' => '6 hrs',
-	'43200' => '12 hrs',
-	'86400' => '24 hrs'
-  );
-
-  $poll_int_type = $pt_settings_value['curated_publish'] == 'publishthis_import_from_manager' ? 'hidden' : 'select';
-
-  $form[$group]['poll_interval'] = array(
-	'#type'          => $poll_int_type,
-	'#title'         => t('Poll Interval'),
-	'#options'       => $interval,
-	'#visible'       => FALSE,
-	'#default_value' => isset($pt_value['poll_interval']) ? $pt_value['poll_interval'] : '60',
-  );
   // User list
   $users   = entity_load('user');
   $authors = array();

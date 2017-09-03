@@ -36,26 +36,6 @@ function publishthis_settings($form, &$form_state) {
     }
   } catch (Exception $ex) {}
 
-  $form['pt_settings']['curated_publish'] = array(
-	  '#type'          => 'radios',
-	  '#title'         => t('PublishThis Curated Publish Options'),
-	  '#attributes'    => array('class' => array('horizontal-list')),
-	  '#default_value' => 'publishthis_import_from_manager',
-	  '#options'       => array(
-	    'publishthis_import_from_manager' => t('PublishThis pushes to this CMS'),
-	    'import_with_cron'                => t('This CMS polls PublishThis (with cron)'),
-	    'import_without_cron'             => t('This CMS polls PublishThis (without cron)')
-	  ),
-	  '#default_value' => isset($pt_value['curated_publish']) ? $pt_value['curated_publish'] : 'publishthis_import_from_manager',
-	  '#description'   => t('')
-  );
-  $form['pt_settings']['pause_polling']   = array(
-	  '#type'          => 'checkboxes',
-	  '#title'         => t('Pause Polling'),
-	  '#options'       => drupal_map_assoc(array(t('Stop polling the API for new content'))),
-	  '#default_value' => !empty($pt_value) ? (array) $pt_value['pause_polling']['Stop polling the API for new content'] : array(),
-	  '#description'   => t('')
-  );
   if (isset($pt_value['endpoint']) && !empty($pt_value['endpoint'])) {
 	  $pt_endpoint = $pt_value['endpoint'];
   }
