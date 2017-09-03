@@ -369,16 +369,22 @@ abstract class Publishthis_Utils_Common {
 	/**
 	 *   Build dynamic styles
 	 */
-	function display_css() {
-		$style = '<style type="text/css">';
+  function display_css($wrap=true) {
+    $style = '';
 
-		foreach ($this->css_sections as $section_key => $section_title) {
-			$style .= $this->build_style( $section_key );
-		}
+    if($wrap) {
+      $style .= '<style type="text/css">';
+    }
 
-		$style .= '</style>';
-		return $style;
-	}
+    foreach ($this->css_sections as $section_key => $section_title) {
+      $style .= $this->build_style( $section_key );
+    }
+
+    if($wrap) {
+      $style .= '</style>';
+    }
+    return $style;
+  }
 
 	/**
 	 * Build single dynamic style
