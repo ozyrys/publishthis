@@ -39,15 +39,12 @@ function publishthis_init() {
   }
   $query_params = drupal_get_query_parameters(null, array());
   if( count($query_params) == 1 && $query_params['q']== $pt_endpoint) {
-    init_pt_endpoint();
+    _init_pt_endpoint();
     exit;
   }
 
   // common js
   drupal_add_js(drupal_get_path('module', 'publishthis') . '/assets/js/publishthis.js');
-
-  //Add Tweeter widget js
-  drupal_add_js( 'http://platform.twitter.com/widgets.js' );
 }
 
 function publishthis_preprocess_html(&$variables) {
@@ -332,7 +329,7 @@ function publishthis_node_delete($node) {
 /**
 * Process CMS endpoint request
 */
-function init_pt_endpoint() {
+function _init_pt_endpoint() {
   $objEndpoint = new Publishthis_Endpoint();
   $objEndpoint->process_request();
 }
