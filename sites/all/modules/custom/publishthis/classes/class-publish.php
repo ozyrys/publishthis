@@ -2,7 +2,6 @@
 class Publishthis_Publish {
 	private $pt_settings = null;
 	private $obj_api = null;
-	private $obj_render = null;
 	private $obj_utils = null;
 	private $publishing_actions = array();
 
@@ -13,7 +12,6 @@ class Publishthis_Publish {
 		$this->pt_settings = unserialize(variable_get('pt_settings'));
 
 		$this->obj_api  = new Publishthis_API();
-		$this->obj_render = new Publishthis_Render();
 		$this->obj_utils = new Publishthis_Utils();
 	}
 
@@ -34,332 +32,28 @@ class Publishthis_Publish {
 	}
 
 	/**
-	 * Publishes the single feed with a Publishing Actions meta information
+	 * Publishes the single post with a Publishing Actions meta information
 	 *
-	 * @param int     $feed_id     Publishthis Feed id
-	 * @param array   $feed_meta   Publishthis Feed data (display name, etc.)
+	 * @param int     $post_id     Publishthis Post id
+	 * @param array   $post_meta   Publishthis Post data (display name, etc.)
 	 * @param int     $action_id   Publishing Action id
 	 * @param array   $action_meta Publishing Action data
 	 */
-	function publish_feed_with_publishing_action( $feed, $action_meta ) {
-		try{
-			
-	
-			$posts_updated = $posts_inserted = $posts_deleted = $posts_skipped = 0;
-
-			$feed_id = $feed['feedId'];
-			$feed_meta = array( "displayName" => $feed['displayName'] );
-
-			$curated_content = $this->obj_api->get_section_content ( $feed_id, $action_meta['template_section'] );
-			if ( empty ( $curated_content ) ) {
-				return;
-			}
-
-			// Unique set name
-			$set_name = '_publishthis_set_' . $action_meta['feed_template'] . '_' . $action_meta['template_section'] . '_' . $feed_id;
-
-			$arrPostCategoryNames = array();
-
-			$result_list = $this->obj_api->get_custom_data_by_feed_id ( $feed_id, array () );
-			
-			$custom_data = $managerCategories = array();
-			$action_meta['ptauthors'] = null;
-			$action_meta['pttags'] = null;
-			$action_meta['ptcategories'] = null;
-			foreach ( $result_list as $result ) {
-				if( strtoupper( $result->type ) != 'CMS' && isset($result->value) && !empty($result->value) ) {
-					$custom_data[$result->shortCode] = $result->value;
-						
-					if ( !in_array( $result->shortCode, array( 'ptauthors', 'ptcategories', 'pttags' ) ) ) {
-						$managerCategories[] = $result->value;
-						
-					}
-				}				
-			}
-			if (isset($custom_data['ptcategories'])) {
-			$action_meta['ptcategories'] = $custom_data['ptcategories'];
-			}
-			if (isset($custom_data['pttags'])) {
-			$action_meta['pttags'] = $custom_data['pttags'];
-			}
-			if (isset($custom_data['ptauthors'])) {
-			$action_meta['ptauthors'] = $custom_data['ptauthors'];
-			}		
-			// Categorize
-			// map categories from custom data in a Feed to categories in wordpress
-			if ( !empty($action_meta['action_category']) ) {
-				if ( isset( $custom_data[ $action_meta['action_category'] ] ) ) {
-					$strCategoryValue = $custom_data[ $action_meta['action_category'] ];
-
-					foreach ( explode( ',', $strCategoryValue ) as $category ) {
-						$arrPostCategoryNames[] = $category;
-					}
-				}
-
-				$this->obj_api->_log_message( array( 'message' => 'Trying to map to categories', 'status' => 'info', 'details' => implode( ",", $managerCategories ) ), "2" );
-			}
-
-			// Combined mode selected - all imported content in single item
-			if ( $action_meta['format_type'] == 'Digest' ) {
-				//don't update existed posts if synchronization is turned off
-				$nid = $this->_get_post_by_docid ( $set_name ); 
-				if ( $nid && $action_meta['allow_to_override'] != "1" ) {
-					$posts_skipped++;
-				}
-				else {
-					//set title
-					$action_meta['digest_title'] = $feed_meta['displayName'];
-
-					//save imported data
-					//this is updating a "combined or digest post"
-					$status = $this->_update_content( $nid, $feed_id, $set_name, $set_name, $arrPostCategoryNames, $curated_content, $action_meta );
-					if ( $status == 'updated' ) $posts_updated++;
-					if ( $status == 'inserted' ) $posts_inserted++;					
-				}
-			}
-			else { // Individual mode selected - import content in separate WP posts
-				$new_set_docids = array ();
-
-				// make sure to reverse the array, as the order in the publish
-				// this template sections have a defined order. so, the first one in the template
-				// section should be marked as most recently published
-				foreach ( array_reverse( $curated_content ) as $content ) {
-					$new_set_docids [] = $content->docId;
-
-					//don't update existed posts if synchronization is turned off
-					$nid = $this->_get_post_by_docid ( $content->docId );
-					if ( $nid && $action_meta['ind_modified_content'] != "1" ) $posts_skipped++;
-					if ( $nid && $action_meta['ind_modified_content'] != "1" ) continue;
-
-					$status = $this->_update_content( $nid, $feed_id, $set_name, $content->docId, $arrPostCategoryNames, $content, $action_meta );
-
-					if ( $status == 'updated' ) $posts_updated++;
-					if ( $status == 'inserted' ) $posts_inserted++;
-					if ( $status == 'skipped' ) $posts_skipped++;					
-				}
-
-				if ( $action_meta['ind_delete_posts'] == "1" ) {
-					$posts_deleted = $this->_delete_individuals( $new_set_docids, $set_name );
-				}
-			}
-
-			$message = array(
-				'message' => 'Import Results',
-				'status' => 'info',
-				'details' => ( $posts_updated+$posts_inserted+$posts_skipped+$posts_deleted ).' post(s) processed: '.
-				$posts_updated.' updated, '.$posts_inserted.' inserted, '.$posts_deleted.' deleted, '.$posts_skipped.' skipped' );
-			$this->obj_api->_log_message( $message, "2" );
-		}catch( Exception $ex ) {
-			$message = array(
-				'message' => 'Import Results',
-				'status' => 'error',
-				'details' => 'Unable to publish the feed id:' . $feed['feedId'] . ', because of:' . $ex->getMessage() );
-			$this->obj_api->_log_message( $message, "1" );
-
-			throw $ex;
-		}
+	function publish_post_with_publishing_action( $post, $action_meta ) {
 	}
 
 	/**
 	 *   Save import content as a node
 	 *
 	 * @param unknown $nid              	Node ID
-	 * @param number  $feed_id              The PublishThis Feed Id
+	 * @param number  $post_id              The PublishThis Post Id
 	 * @param unknown $docid                docid linked to this post
 	 * @param unknown $arrPostCategoryNames Category
 	 * @param unknown $curated_content      Imported content
 	 * @param unknown $content_features     Additional content info
 	 */
-	private function _update_content( $nid, $feed_id, $set_name, $docid, $arrPostCategoryNames, $curated_content, $content_features ) {
-		$body_text = '';
-		//if don't add new node
-		if( $content_features['ind_add_posts']=='0' && empty($nid) && $content_features['format_type'] == 'Individual' ) return;
+	private function _update_content( $nid, $post_id, $set_name, $docid, $arrPostCategoryNames, $curated_content, $content_features ) {
 
-		$node = !empty($nid) ? node_load($nid) : new stdClass();
-
-		//first, see if we are even allowed to do an update if it is there (for individuals only)
-		if( $content_features['format_type'] == 'Individual' ) {
-			if ( !empty($nid) && ( $content_features['ind_modified_content'] == '1' ) ) {
-				//get node curate date
-				$node_curatedate = $this->_get_curatedate_by_nid($nid);
-				
-				//check publishthis doc last update date
-				if ( !isset($node_curatedate) || $node_curatedate == $curated_content->curateUpdateDate ) {
-					if ( !isset($node_curatedate) ) {
-						if( isset($curated_content) && isset($curated_content->curateUpdateDate) ) {
-							$this->_set_curatedate_by_nid($nid, $curated_content->curateUpdateDate);
-						}
-						$message = array(
-							'message' => 'Skipped Individual Doc',
-							'status' => 'info',
-							'details' => 'Skipped doc because it had an empty update date. set it and skipping. Node id:' . $nid . ' for feed id:' . $feed_id. ' date was:' . $curated_content->curateUpdateDate );				
-						$this->obj_api->_log_message( $message, "1" );
-					}
-					else {
-						$message = array(
-							'message' => 'Skipped Individual Doc',
-							'status' => 'info',
-							'details' => 'Skipped doc because it was not updated. Node id:' . $nid . ' for feed id:' . $feed_id );
-						$this->obj_api->_log_message( $message, "1" );
-					}					
-					return "skipped";
-				}
-			}
-
-		}		
-		
-		$node->type = $content_features['content_type'];
-		node_object_prepare($node);
-
-		$node->uid = $content_features['publish_author'];
-		$node->status = $content_features['content_status'];
-		$node->language = LANGUAGE_NONE;
-		$node->is_new = empty($nid) ? TRUE : FALSE;
-		if ( $content_features['format_type'] == 'Digest' ) {
-			$node->title = !empty( $content_features['digest_title'] ) ? $content_features['digest_title'] : NODE_NO_TITLE	;
-
-			$curated_content_index = 1; //an index for usage in our template rendering. This way, we can do different things per item of content
-		
-			$this->obj_render->pt_is_first = true;
-			$this->obj_render->pt_content_features = $content_features;
-
-			$contentImageUrl = null;
-
-			// Generate html output
-			foreach ( $curated_content as $content ) {
-
-				//until manager tool fixes the original vs thumbnail issue, we need to switch bookmark images to their thumbnails
-				if ( !empty( $content->imageUrl ) ) {
-					if ( strrpos( $content->imageUrl, "bookmark" ) > 0 ) {
-						$content->imageUrl = $content->imageUrlThumbnail;
-					}
-				}
-
-				//save first image url for featured
-				if ( !empty( $content->imageUrl ) && $contentImageUrl == null ) {
-					$this->obj_render->pt_found_featured_image = true;
-					$contentImageUrl = $content->imageUrl;
-				}
-
-				$content->feedId = $feed_id;
-				$content->curatedContentIndex = $curated_content_index;
-				$this->obj_render->pt_content = $content;
-						
-				$body_text .= $this->obj_render->render_content( $content_features['format_type'] );
-				
-				//$this->obj_render->pt_break_page = false;
-				$this->obj_render->pt_is_first = false;
-				$this->obj_render->pt_found_featured_image = false;
-
-				$curated_content_index++;
-			}
-
-		$node->body[$node->language][0]['value']   = $body_text;
-		$node->body[$node->language][0]['format'] = 'full_html';
-		$node->body[$node->language][0]['summary'] = $this->_build_node_summary($curated_content[0]);
-		}
-		else {
-			$content = $curated_content;
-			$node->title = !empty( $content->title ) ? $content->title : NODE_NO_TITLE;
-
-			$content->feedId = $feed_id;
-
-			//until manager tool fixes the original vs thumbnail issue, we need to switch bookmark images to their thumbnails
-			if ( !empty( $content->imageUrl ) ) {
-				if ( strrpos( $content->imageUrl, "bookmark" ) > 0 ) {
-					$content->imageUrl = $content->imageUrlThumbnail;
-				}
-			}
-
-			$contentImageUrl = $content->imageUrl;
-
-			$this->obj_render->pt_content = $content;
-			$this->obj_render->pt_content_features = $content_features;
-    		$body_text = $this->obj_render->render_content( $content_features['format_type'] );
-			$node->body[$node->language][0]['value']   = $body_text;
-			$node->body[$node->language][0]['summary'] = $this->_build_node_summary($content);
-            $node->body[$node->language][0]['format'] = 'full_html';
-		}
-
-		//Set content alias on insert
-		if( empty($nid) ) {
-			$path = $node->title!=NODE_NO_TITLE ? preg_replace("/[^a-zA-Z0-9_]/","", str_replace( ' ', '_', $node->title ) ) . '_' . uniqid() : 'pt-content-' . uniqid();
-			$node->path = array('alias' => $path);
-		}		
-
-		// Download and set featured image
-		$featured_image = $content_features['featured_image']['save_featured_image']==='save_featured_image' ? true : false;
-
-		if ( $featured_image && !empty ( $content->imageUrl ) ) {
-		$node->field_image[$node->language][0] = $this->_get_featured_image( $contentImageUrl, $content_features );
-        if ($content_features['featured_image_size'] == 'theme_default') {
-          $node->field_image[$node->language][0]['width'] = $content_features['image_width'];
-          $node->field_image[$node->language][0]['height'] = $content_features['image_height'];
-        }elseif($content_features['featured_image_size'] == 'custom') {
-          $node->field_image[$node->language][0]['width'] = $content_features['featured_image_width'];
-          $node->field_image[$node->language][0]['height'] = $content_features['featured_image_height'];
-        }
-        elseif ($content_features['featured_image_size'] == 'custom_max_width') {
-         $size = getimagesize($content_features['featured_image_maxwidth']);
-         if($size['0'] > $content_features['featured_image_size']){
-           $node->field_image[$node->language][0]['width'] = $content_features['featured_image_maxwidth'];
-         }
-        }
-        }
-		else {
-			unset( $node->field_image[$node->language][0] );
-		}
-
-		//Categorize content
-		foreach( $arrPostCategoryNames as $key=>$category ) {
-			$search_category = taxonomy_get_term_by_name($category, $content_features['taxonomy_group']);
-			if( $search_category ) {
-				$term = array_shift( $search_category );
-				$node->field_tags[$node->language][$key]['tid'] = intval($term->tid);
-				$node->field_tags[$node->language][$key]['vid'] = intval($term->vid);
-			}
-		}
-		$tags = array();
-		$tags = $content_features['pttags'];
-		$cats = $content_features['ptcategories'];
-		$tid = array();
-		if(!empty($tags)){
-		foreach($tags as $tag){
-		$tid = _get_tid_from_term_name($tag->displayName, 'tags');
-		$node->field_tags[$node->language][] = array('tid' =>  $tid);
-		}
-		}
-		if(!empty($cats)){
-		foreach($cats as $cat){
-		$tid = _get_tid_from_term_name($cat->categoryName, $cat->taxonomyName);
-		$field_node = 'pt_'. $cat->taxonomyName;
-		$node->{$field_node}[$node->language][]  = array('tid' =>  $tid);
-		}
-		}
-
-			$node = node_submit($node);
-		node_save($node);
-	  /* Add ptmetadata to node */
-	  $someValue = json_encode($curated_content);
-	    db_update('node')
-          ->fields( array( 'ptmetadata' => $someValue ) )
-          ->condition( 'nid', $node->nid, '=')
-          ->execute();
-           if( empty( $node->nid ) ) {
-			$message = array(
-				'message' => 'Post insert/update error',
-				'status' => 'error',
-				'details' => implode( ';', $result->get_error_messages() ) );
-			$this->obj_api->_log_message( $message, "1" );
-		}
-
-		if( $nid == 0 ) {
-			$this->_set_docid( $node->nid, $docid, $set_name );
-		}
-
-		if( isset($curated_content) && isset($curated_content->curateUpdateDate) ) {
-			$this->_set_curatedate_by_nid($node->nid, $curated_content->curateUpdateDate);
-		}
 
 		return  empty($nid) ? 'inserted' : 'updated';
 	}
@@ -529,57 +223,41 @@ class Publishthis_Publish {
 	}
 
 	/**
-	 * this takes an array of feed ids, and then tries to publish each one of them
+	 * this takes post id, and then tries to publish it
 	 * using all of our helper functions.
 	 * This will usually be called from our publishing endpoint
 	 */
 
-	public function publish_specific_feeds( $arrFeedIds ) {
-		//use these to keep track of what published and what didn't
-		//so we can report it back to the caller in an exception
-		$intDidPublish = 0;
-		$arrFeedsNotPublished = array();
+	public function publish_specific_post( $postId ) {
+
 
 		try{
-			//to publish, we need our actual feed objects
-			$arrFeeds = $this->obj_api->get_feeds_by_ids( $arrFeedIds );
+			//to publish, we need our actual post object
+			$post = $this->obj_api->get_post_by_id( $postId );
+			//get all publishing actions that match up with this feed template (usually 1)
+			$arrPublishingActions = $this->get_publishing_actions();
+			$blnDidPublish = false;
+			//loop the publishing actions and it will then publish content for that post
+			foreach ( $arrPublishingActions as $pubAction ) {
+				$actionId = $pubAction['id'];
 
-			//loop feeds to publish
-			foreach ( $arrFeeds as $feed ) {
+				$action_meta = unserialize($pubAction['value']);
 
-				//get all publishing actions that match up with this feed template (usually 1)
-				$arrPublishingActions = $this->get_publishing_actions();
-
-				$blnDidPublish = false;
-
-				//loop the publishing actions and it will then publish content for that feed
-				foreach ( $arrPublishingActions as $pubAction ) {
-					$actionId = $pubAction['id'];
-
-					$action_meta = unserialize($pubAction['value']);
-
-					if ( $feed['templateId'] == $action_meta['feed_template'] ) {
-						try{
-							$this->publish_feed_with_publishing_action( $feed, $action_meta );
-						}catch( Exception $ex ) {
-							//we capture individual errors and report them,
-							//but we should keep trying to loop because not all feeds may have an issue
-							$message = array(
-								'message' => 'Import of Feed Failed',
-								'status' => 'error',
-								'details' => 'The Feed Id that failed:' . $feed['feedId'] . ' with the following error:' . $ex->getMessage() );
-							$this->obj_api->_log_message( $message, "1" );
-							continue;
-						}
-						$intDidPublish++;
-						$blnDidPublish = true;
+				if ( $post['templateId'] == $action_meta['post_template'] ) {
+					try{
+						$this->publish_post_with_publishing_action( $post, $action_meta );
+					}catch( Exception $ex ) {
+						//we capture individual errors and report them,
+						$message = array(
+							'message' => 'Import of Feed Failed',
+							'status' => 'error',
+							'details' => 'The Feed Id that failed:' . $post['postId'] . ' with the following error:' . $ex->getMessage() );
+						$this->obj_api->_log_message( $message, "1" );
 					}
-				}
-
-				if ( !$blnDidPublish ) {
-					$arrFeedsNotPublished [] = $feed['feedId'];
+					$blnDidPublish = true;
 				}
 			}
+
 		}catch( Exception $ex ) {
 			//some other occurred while we tried publish, not sure what
 			//capture this and log it and then throw it as well as what info we have
@@ -587,16 +265,9 @@ class Publishthis_Publish {
 			$message = array(
 				'message' => 'Import of Feed Failed',
 				'status' => 'error',
-				'details' => 'A general exception happened during the publishing of specific feeds. Feed Ids not published:' . implode( ',', $arrFeedsNotPublished ) . ' specific message:' . $ex->getMessage() );
+				'details' => 'A general exception happened during the publishing of specific post. Post Id not published:' . $post['postId'] . ' specific message:' . $ex->getMessage() );
 			$this->obj_api->_log_message( $message, "1" );
-
-			throw new Exception( 'General exception.  Only ' . $intDidPublish . ' of ' . count( $arrFeedIds ) . ' published. These were the Feed Ids that did not publish:' . implode( ',', $arrFeedsNotPublished ) );
 		}
-
-		if ( $intDidPublish < count( $arrFeedIds ) ) {
-			throw new Exception( 'Some Feeds published.  Only ' . $intDidPublish . ' of ' . count( $arrFeedIds ) . ' published. These were the Feed Ids that did not publish:' . implode( ',', $arrFeedsNotPublished ) );
-		}
-
 	}
 
 }

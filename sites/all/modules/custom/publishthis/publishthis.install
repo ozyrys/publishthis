@@ -14,7 +14,6 @@ function publishthis_schema() {
       'id' => array('type' => 'serial', 'not null' => TRUE),
       'name' => array('type' => 'varchar', 'length' => 255, 'not null' => TRUE),
       'title' => array('type' => 'varchar', 'length' => 255, 'not null' => TRUE),
-      'format_type' => array('type' => 'varchar', 'length' => 255, 'not null' => TRUE),
       'value' => array('type' => 'blob', 'not null' => TRUE),
     ),
     'primary key' => array('id'),
