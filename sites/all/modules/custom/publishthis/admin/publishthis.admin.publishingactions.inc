@@ -114,32 +114,22 @@ function publishthis_addnew_publishingactions($form, &$form_state) {
 	  $pt_value = array();
   }
 
-  $form['#prefix']  = '<div id="form-wrapper">';
-  $form['#suffix '] = '</div>';
-  $form['header']   = array(
+  $form['pta_header']   = array(
 	  '#markup' => '<div class="wrap"><div id="icon-edit" class="icon32 icon32-posts-publishthis_action"></div>
             <h2><span style="line-height:48px;vertical-align:top;">' . $text . '</span></h2></div>'
   );
 
-  $form['header_sublink'] = array(
+  $form['pta_header_sublink'] = array(
 	  '#markup' => '<ul><li>' . l('Publishing Actions', 'admin/config/system/publishthis/publishing-actions') . '</li></ul>'
   );
 
-  $form['action_title'] = array(
+  $form['pta_action_title'] = array(
 	  '#type'          => 'textfield',
 	  '#title'         => t('Title'),
 	  '#attributes'    => array('placeholder' => t('Enter title here')),
 	  '#required'      => TRUE,
 	  '#size'          => 80,
-	  '#default_value' => isset($pt_value['action_title']) ? $pt_value['action_title'] : '',
-  );
-
-  $group        = 'options';
-  $form[$group] = array(
-	  '#type'        => 'fieldset',
-	  '#title'       => t('Options'),
-	  '#collapsible' => TRUE,
-	  '#attributes'  => array('class' => array('pt-options')),
+	  '#default_value' => isset($pt_value['pta_action_title']) ? $pt_value['pta_action_title'] : '',
   );
 
   $node_types    = node_type_get_types();
@@ -148,11 +138,11 @@ function publishthis_addnew_publishingactions($form, &$form_state) {
     $content_types[$node->type] = $node->name;
   }
 
-  $form[$group]['content_type'] = array(
+  $form['pta_content_type'] = array(
     '#type'          => 'select',
     '#title'         => t('Your Site\'s Content Type'),
     '#options'       => $content_types,
-    '#default_value' => isset($pt_value['content_type']) ? $pt_value['content_type'] : 'page',
+    '#default_value' => isset($pt_value['pta_content_type']) ? $pt_value['pta_content_type'] : 'page',
   );
 
   // User list
@@ -162,132 +152,151 @@ function publishthis_addnew_publishingactions($form, &$form_state) {
 	  unset ($authors[0]);
   	$authors[$user->uid] = $user->name;
   }
-  $form[$group]['publish_author'] = array(
+  $form['pta_publish_author'] = array(
 	  '#type'          => 'select',
 	  '#title'         => t('Publish Author'),
 	  '#options'       => $authors,
-	  '#default_value' => isset($pt_value['publish_author']) ? $pt_value['publish_author'] : '',
+	  '#default_value' => isset($pt_value['pta_publish_author']) ? $pt_value['pta_publish_author'] : '',
   );
 
   // If we have a value for the pt_post_type from $form_state['values'] we use
   // this both as the default value for the Post Template and also as a
   // parameter to pass to the funct that retrieves the options for the
   // PublishThis Post Type.
-  if (!empty($pt_value['pt_post_type'])) {
-    $selected = $pt_value['pt_post_type'];
+  if (!empty($pt_value['pta_pt_post_type'])) {
+    $selected = $pt_value['pta_pt_post_type'];
   }
   else {
-    $selected = isset($form_state['values']['pt_post_type']) ? $form_state['values']['pt_post_type'] : $default_templateId;
+    $selected = isset($form_state['values']['pta_pt_post_type']) ? $form_state['values']['pta_pt_post_type'] : $default_templateId;
   }
 
-  $form[$group]['pt_post_type'] = array(
+  $form['pta_pt_post_type'] = array(
     '#type'          => 'select',
     '#title'         => t('PublishThis Post Type'),
-    // The entire enclosing div created here gets replaced when feed_template
-    // is changed.
-    '#prefix'        => '<div id="template-section-replace">',
-    '#suffix'        => '</div>',
-    // when the form is rebuilt during ajax processing, the $selected variable
-    // will now have the new value and so the options will change
     '#options'       => $postType_options,
-    '#default_value' => isset($pt_value['pt_post_type']) ? $pt_value['pt_post_type'] : ''
+    '#default_value' => isset($pt_value['pta_pt_post_type']) ? $pt_value['pta_pt_post_type'] : ''
   );
 
   // If we have a value for the post_template from $form_state['values'] we use
   // this both as the default value for the Post Template and also as a
   // parameter to pass to the funct that retrieves the options for the
   // Post templates.
-  if (!empty($pt_value['post_template'])) {
-	  $selected = $pt_value['post_template'];
+  if (!empty($pt_value['pta_post_template'])) {
+	  $selected = $pt_value['pta_post_template'];
   }
   else {
-	  $selected = isset($form_state['values']['post_template']) ? $form_state['values']['post_template'] : $default_templateId;
+	  $selected = isset($form_state['values']['pta_post_template']) ? $form_state['values']['pta_post_template'] : $default_templateId;
   }
 
-  $form[$group]['post_template'] = array(
+  $form['pta_post_template'] = array(
 	  '#type'          => 'select',
 	  '#title'         => t('HTML Template for Post Body'),
-	  // The entire enclosing div created here gets replaced when feed_template
-	  // is changed.
-	  '#prefix'        => '<div id="template-section-replace">',
-	  '#suffix'        => '</div>',
-	  // when the form is rebuilt during ajax processing, the $selected variable
-	  // will now have the new value and so the options will change
 	  '#options'       => $template_options,
-	  '#default_value' => isset($pt_value['post_template']) ? $pt_value['post_template'] : ''
+	  '#default_value' => isset($pt_value['pta_post_template']) ? $pt_value['pta_post_template'] : ''
+  );
+  $form['pta_post_template_url'] = array(
+    '#type'          => 'textfield',
+    '#title'         => t('- OR - Provide Your Own Template URL'),
+    '#default_value' => isset($pt_value['pta_post_template_url']) ? $pt_value['pta_post_template_url'] : '',
+    '#prefix' => '<div class="container-inline">',
+    '#suffix' => '</div>',
   );
 
-  $form[$group]['content_status'] = array(
+  $form['pta_content_status'] = array(
 	  '#type'          => 'radios',
-	  '#title'         => t('Content Status'),
+	  '#title'         => t('Default Published Status'),
+    '#attributes'    => array('class' => array('horizontal-list')),
 	  '#options'       => array('1' => t('Publish'), '0' => 'Not Publish'),
-	  '#default_value' => isset($pt_value['content_status']) ? $pt_value['content_status'] : '0',
+	  '#default_value' => isset($pt_value['pta_content_status']) ? $pt_value['pta_content_status'] : '0',
 	  '#description'   => t(''),
   );
-  $def_featured_image_option = 'Post Image: Include document image in template? (uncheck this if your Featured image gets inserted into your post by your theme)';
 
-  $form[$group]['featured_image'] = array(
+  $def_featured_image_option = t('Download and save content image as the "Featured Image"');
+  $form['pta_featured_image'] = array(
 	  '#type'          => 'checkboxes',
 	  '#title'         => t('Featured Image'),
 	  '#label'         => t('Post Image:'),
 	  '#options'       => array(
-	    'save_featured_image' => t('Download and save content image as the "Featured Image"'),
-	    'html_body_image'     => $def_featured_image_option
+	    'save_featured_image' => $def_featured_image_option,
 	  ),
-	  '#default_value' => !empty($pt_value) ? (array) $pt_value['featured_image'] : array('html_body_image' => 'html_body_image'),
+	  '#default_value' => !empty($pt_value) ? (array) $pt_value['pta_featured_image'] : array('save_featured_image' => 'save_featured_image'),
+  );
+
+  $def_ignore_img_option = "Ok to ignore original image's size?:  Original images can be smaller than your set size. If you check this, then we will ignore that original size, and resize to your set size. Smaller images will then have padding added to match the size you indicate. ";
+  $form['pta_ignore_original_image'] = array(
+    '#type'          => 'checkboxes',
+    '#options'       => array('resize_featured_image' => $def_ignore_img_option),
+    '#default_value' => !empty($pt_value) ? (array) $pt_value['pta_ignore_original_image'] : array('resize_featured_image' => 'resize_featured_image'),
   );
 
   // Featured Image fields
-  $form[$group]['images'] = _image_size_fields('Featured Image Size', 'featured_', $pt_value);
-
-  $def_ignore_img_option = "Ok to ignore original image's size?:  Original images can be smaller than your set size. If you check this, then we will ignore that original size, and resize to your set size. Smaller images will then have padding added to match the size you indicate. ";
-
-  $form[$group]['ignore_original_image'] = array(
-	  '#type'          => 'checkboxes',
-	  '#options'       => array('resize_featured_image' => $def_ignore_img_option),
-	  '#default_value' => !empty($pt_value) ? (array) $pt_value['ignore_original_image'] : array('resize_featured_image' => $def_ignore_img_option),
+  $form['pta_image_size'] = array(
+    '#type'          => 'radios',
+    '#title'         => t('Featured Image Size'),
+    '#options'       => array(
+      'theme_default'    => t('Theme Default'),
+      'custom'           => t('Width'),
+      'custom_max_width' => t('Max Width'),
+      'custom_up_to_max_width' => t('Up to Max Width')
+    ),
+    '#default_value' => !empty($pt_value) ? $pt_value['pta_image_size'] : 'theme_default',
+    '#description'   => t(''),
   );
 
-  // Individual
-  $form[$group]['ind_add_posts'] = array(
-	  '#type'          => 'radios',
-	  '#title'         => t('Add Posts from new content'),
-	  '#attributes'    => array('class' => array('horizontal-list')),
-	  '#options'       => array('0' => t('No'), '1' => 'Yes'),
-	  '#default_value' => isset($pt_value['ind_add_posts']) ? $pt_value['ind_add_posts'] : '1',
-	  '#states'        => array(
-	    'visible' => array(
-	  	':input[name="format_type"]' => array('value' => t('Individual')),
-	    ),
-	  ),
+  // Width
+  $form['pta_image_width'] = array(
+    '#type'          => 'textfield',
+    '#size'          => 5,
+    '#default_value' => !empty($pt_value) ? $pt_value['pta_image_width'] : 300,
   );
 
-  $form[$group]['ind_delete_posts'] = array(
-	  '#type'          => 'radios',
-	  '#title'         => t('Delete Posts when deleted in PublishThis'),
-	  '#attributes'    => array('class' => array('horizontal-list')),
-	  '#options'       => array('0' => t('No'), '1' => 'Yes'),
-	  '#default_value' => isset($pt_value['ind_delete_posts']) ? $pt_value['ind_delete_posts'] : '0',
-	  '#states'        => array(
-	    'visible' => array(
-	  	':input[name="format_type"]' => array('value' => t('Individual')),
-	    ),
-	  ),
+  $form['pta_image_height'] = array(
+    '#type'          => 'textfield',
+    '#title'         => t('Height'),
+    '#size'          => 5,
+    '#default_value' => !empty($pt_value) ? $pt_value['pta_image_height'] : 300,
   );
 
-  $form[$group]['ind_modified_content'] = array(
-	  '#type'          => 'radios',
-	  '#title'         => t('Modified content in PublishThis updates Posts'),
-	  '#attributes'    => array('class' => array('horizontal-list')),
-	  '#options'       => array('0' => t('No'), '1' => 'Yes'),
-	  '#default_value' => isset($pt_value['ind_modified_content']) ? $pt_value['ind_modified_content'] : '1',
-	  '#states'        => array(
-	    'visible' => array(
-	  	':input[name="format_type"]' => array('value' => t('Individual')),
-	    ),
-	  ),
+  // Max Width
+  $form['pta_image_maxwidth'] = array(
+    '#type'          => 'textfield',
+    '#size'          => 5,
+    '#default_value' => !empty($pt_value) ? $pt_value['pta_image_maxwidth'] : 300,
   );
 
+  // Up to Max Width
+  $form['pta_image_up_to_maxwidth'] = array(
+    '#type'          => 'textfield',
+    '#size'          => 5,
+    '#default_value' => !empty($pt_value) ? $pt_value['pta_image_up_to_maxwidth'] : 0,
+  );
+
+  $form['pta_override_edits'] = array(
+    '#type'          => 'radios',
+    '#title'         => t('Default Published Status'),
+    '#attributes'    => array('class' => array('horizontal-list')),
+    '#options'       => array('0' => t('No'), '1' => 'Yes'),
+    '#default_value' => isset($pt_value['pta_override_edits']) ? $pt_value['pta_override_edits'] : '0',
+    '#description'   => t(''),
+  );
+
+  $form['pta_override_edits'] = array(
+    '#type'          => 'radios',
+    '#title'         => t('Allow PublishThis to Override Edits'),
+    '#attributes'    => array('class' => array('horizontal-list')),
+    '#options'       => array('0' => t('No'), '1' => 'Yes'),
+    '#default_value' => isset($pt_value['pta_override_edits']) ? $pt_value['pta_override_edits'] : '1',
+    '#description'   => t(''),
+  );
+
+  $form['pta_add_tags'] = array(
+    '#type'          => 'radios',
+    '#title'         => t('Add Tags to Content'),
+    '#attributes'    => array('class' => array('horizontal-list')),
+    '#options'       => array('0' => t('No'), '1' => 'Yes'),
+    '#default_value' => isset($pt_value['pta_add_tags']) ? $pt_value['pta_add_tags'] : '1',
+    '#description'   => t(''),
+  );
 
   $form['editId'] = array(
 	  '#type'          => 'hidden',
@@ -310,8 +319,8 @@ function publishthis_addnew_publishingactions_submit($form, &$form_state) {
 
   if ($form_state['clicked_button']['#value'] == "Save Changes") {
 
-	$content_type = $form_state['values']['content_type'];
-	$action_title = $form_state['values']['action_title'];
+	$content_type = $form_state['values']['pta_content_type'];
+	$action_title = $form_state['values']['pta_action_title'];
 
 	$form_state['values']['import_start'] = time();
 
@@ -333,15 +342,6 @@ function publishthis_addnew_publishingactions_submit($form, &$form_state) {
     drupal_goto('admin/config/system/publishthis/publishing-actions');
   }
 
-}
-
-/**
- * Selects category dropdown to be returned for re-rendering
- *
- * @return renderable array (the second dropdown)
- */
-function ajax_category_dropdown_callback($form, $form_state) {
-  return $form['options']['action_category'];
 }
 
 
@@ -396,8 +396,8 @@ function edit_publishthis_publishing_actions($form, $form_state) {
  */
 function edit_publishthis_publishing_actions_submit($form, &$form_state) {
   if ($form_state['clicked_button']['#value'] == "Save Changes") {
-	  $content_type = $form_state['values']['content_type'];
-	  $action_title = $form_state['values']['action_title'];
+	  $content_type = $form_state['values']['pta_content_type'];
+	  $action_title = $form_state['values']['pta_action_title'];
 
 	  $form_state['values']['import_start'] = time();
 
@@ -439,4 +439,64 @@ function delete_publishthis_publishing_actions() {
 	  drupal_goto("admin/config/system/publishthis/publishing-actions");
   }
 
+}
+
+// ############### THEMES #################
+
+/**
+ * Implements theme_edit_publishthis_publishing_actions().
+ */
+function theme_edit_publishthis_publishing_actions($variables) {
+  return theme_publishthis_addnew_publishingactions($variables);
+}
+/**
+ * Implements theme_publishthis_addnew_publishingactions().
+ */
+function theme_publishthis_addnew_publishingactions($variables) {
+  $table_data = array();
+  $output = '';
+
+  foreach ($variables['form'] as $k => $element) {
+    if (strpos($k, 'pta_') === 0) {
+      //dpm($k);
+      if ($k == 'pta_image_size') {
+        foreach (element_children($variables['form'][$k]) as $name) {
+          $table_data[$name] = array(
+            drupal_render($variables['form'][$k][$name]),
+          );
+          switch ($name) {
+            case 'custom':
+              if (!empty($variables['form']['pta_image_width'])) {
+                $table_data[$name][] = drupal_render($variables['form']['pta_image_width']);
+              }
+              if (!empty($variables['form']['pta_image_height'])) {
+                $table_data[$name][] = drupal_render($variables['form']['pta_image_height']);
+              }
+              break;
+            case 'custom_max_width':
+              if (!empty($variables['form']['pta_image_maxwidth'])) {
+                $table_data[$name][] = drupal_render($variables['form']['pta_image_maxwidth']);
+              }
+              break;
+            case 'custom_up_to_max_width':
+              if (!empty($variables['form']['pta_image_up_to_maxwidth'])) {
+                $table_data[$name][] = drupal_render($variables['form']['pta_image_up_to_maxwidth']);
+              }
+              break;
+          }
+        }
+        $headers = array();
+        $table = '<div class="form-item"><label>'.t('Featured Image Size').'</label>'.theme_table(array('header' => $headers, 'rows' => $table_data, 'attributes' => array(), 'caption' => '', 'colgroups' => array(), 'sticky' => 0, 'empty' => '')).'</div>';
+        $output .= $table;
+        unset($variables['form'][$k]);
+      }
+      else {
+        $output .= drupal_render($variables['form'][$k]);
+      }
+    }
+  }
+
+
+  $output .= drupal_render_children($variables['form']);
+  return $output;
 }
