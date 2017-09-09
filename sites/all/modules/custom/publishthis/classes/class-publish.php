@@ -91,7 +91,7 @@ class Publishthis_Publish {
 	  $node = !empty($nid) ? node_load($nid) : new stdClass();
     $node->type = 'page';
     node_object_prepare($node);
-    watchdog('hlp', '#3#');
+
     $node->uid = 1;
     $node->status = 1;
     $node->language = LANGUAGE_NONE;
@@ -125,7 +125,8 @@ class Publishthis_Publish {
 	 * @param string $text
 	 */
 	private function _build_node_summary( $content ) {
-		$summary = truncate_utf8(strip_tags($content), 300, TRUE, TRUE, 1);
+    $summary = isset($content[0]) && strlen($content[0])>0 ? trim(preg_replace('/\s\s+/', ' ', strip_tags($content[0]))) : '';
+		$summary = strlen($summary)>0 ? truncate_utf8($summary, 300, TRUE, TRUE, 1) : '';
 		return $summary;
 	} 
 
