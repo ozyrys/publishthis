@@ -5,18 +5,6 @@
  */
 function publishthis_init() {
   global $pt_settings_value;
-  global $pt_client_info;
- 
-  if( $cache = cache_get('pt_client_info') ) {
-    $pt_client_info = $cache->data;
-    if( time() - $cache->expire > 0 ) {
-      cache_clear_all($cache->cid, 'cache');
-      $pt_client_info = reset_client_info();
-    }
-  }
-  else {
-    $pt_client_info = reset_client_info();
-  }
 
   // Include common settings file
   include drupal_get_path('module', 'publishthis') . '/publishthis-settings.php';
@@ -84,16 +72,6 @@ function _get_tid_from_term_name($term_name, $vocabulary) {
     $tid = $term->tid;
   }
   return $tid;
-}
-
-function reset_client_info() {
-  $objApi = new Publishthis_API();
-  $pt_client_info = $objApi->get_client_info();
-  //set cache for 2 minutes
-  $cache_time = '+2 minutes';
-  $expire = strtotime($cache_time, time());
-  cache_set('pt_client_info', $pt_client_info, 'cache', $expire );
-  return $pt_client_info;
 }
 
 /**

@@ -5,14 +5,10 @@
  * @method publishthis_settings
  */
 function publishthis_settings($form, &$form_state) {
-  global $pt_client_info;
-
+  // Drupal base url
   global $base_url;
 
   $objAPI   = new Publishthis_API();
-
-  // Find client info
-  $client = $pt_client_info;
 
   // Unserialize saved values
   $pt_value = unserialize(variable_get('pt_settings'));
