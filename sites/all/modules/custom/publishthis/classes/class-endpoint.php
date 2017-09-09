@@ -219,8 +219,21 @@ class Publishthis_Endpoint {
   /**
    * Process request main function
    */
-  function process_request() {
+  function process_request($token) {
 	  global $pt_settings_value;
+
+		// Check if token from request matches Drupal token
+		if ($token != $pt_settings_value['endpoint']) {
+			$message = array(
+				'message' => 'Verify Plugin Endpoint',
+				'status' => 'error',
+				'details' => 'Asked to verify our install at: ' . date("Y-m-d H:i:s") . ' failed because request token mismatch Drupal token'
+			);
+			$this->obj_api->_log_message($message, "1");
+
+			$this->sendFailure("Request token mismatch Drupal token");
+			return;
+		}
 
 	  try {
 	    $bodyContent = file_get_contents('php://input');

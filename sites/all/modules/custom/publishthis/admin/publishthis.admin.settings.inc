@@ -43,7 +43,7 @@ function publishthis_settings($form, &$form_state) {
 	  '#prefix'        => '<div class="form-item form-type-checkboxes">
 			  <label for="edit-cms-url">CMS URL</label>
 			<div id="edit-cms-url">
-			  <div class="form-item form-type-checkbox">' . $base_url . '/?q=' . $pt_endpoint . '
+			  <div class="form-item form-type-checkbox">' . $base_url . '/token/' . $pt_endpoint . '
 			  </div>
 			</div>
 		  </div><div id="endpoint_input">',
