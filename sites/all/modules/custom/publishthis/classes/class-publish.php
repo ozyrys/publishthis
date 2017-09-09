@@ -40,6 +40,23 @@ class Publishthis_Publish {
 	 * @param array   $action_meta Publishing Action data
 	 */
 	function publish_post_with_publishing_action( $post, $action_meta ) {
+    $htmlContent = '';
+    try{
+      $curated_content = $this->obj_api->get_post_html($post['id'], $action_meta['pta_post_template'], null);
+    }catch( Exception $ex ) {
+      $message = array(
+        'message' => 'Generate Post HTML',
+        'status' => 'error',
+        'details' => 'Unable to generate the HTML for PublishThis Post ID:' . $post['id'] . ', html template id:' . $action_meta['pta_post_template'] . ', html template url:' . $action_meta['pta_post_template_url'] . ' because of:' . $ex->getMessage() );
+      $publishthis->log->addWithLevel( $message, "1" );
+
+      throw $ex;
+    }
+
+    $result = $this->_update_content( $curated_content, $action_meta, $post['title'] );
+
+    $returnInfo = array( 'error' => false, 'successMessage' => 'Post was ' . $result['status'] . '.', 'publishedId' => $result['nid']);
+    return $returnInfo;
 	}
 
 	/**
@@ -52,10 +69,28 @@ class Publishthis_Publish {
 	 * @param unknown $curated_content      Imported content
 	 * @param unknown $content_features     Additional content info
 	 */
-	private function _update_content( $nid, $post_id, $set_name, $docid, $arrPostCategoryNames, $curated_content, $content_features ) {
+	private function _update_content( $curated_content, $content_features, $post_title ) {
+    $node = !empty($nid) ? node_load($nid) : new stdClass();
+    $node->type = 'page';
+    node_object_prepare($node);
 
+    $node->uid = 1;
+    $node->status = 1;
+    $node->language = LANGUAGE_NONE;
+    $node->is_new = empty($nid) ? TRUE : FALSE;
 
-		return  empty($nid) ? 'inserted' : 'updated';
+    $node->body[$node->language][0]['value']   = $curated_content;
+    $node->body[$node->language][0]['format'] = 'full_html';
+    $node->body[$node->language][0]['summary'] = $this->_build_node_summary($curated_content);
+
+    $node->title = !empty( $post_title ) ? $post_title : NODE_NO_TITLE;
+
+    $node = node_submit($node);
+    node_save($node);
+
+    $status = empty($nid) ? 'inserted' : 'updated';
+
+		return  array('nid' => $node->nid, 'status' => $status);
 	}
 
 	/**
@@ -228,42 +263,38 @@ class Publishthis_Publish {
 	 * This will usually be called from our publishing endpoint
 	 */
 
-	public function publish_specific_post( $postId ) {
+	public function publish_specific_post($postId, $nid) {
 
 
 		try{
 			//to publish, we need our actual post object
-			$post = $this->obj_api->get_post_by_id( $postId );
+			$post = $this->obj_api->get_basic_post_data($postId);
 			//get all publishing actions that match up with this feed template (usually 1)
 			$arrPublishingActions = $this->get_publishing_actions();
-			$blnDidPublish = false;
 			//loop the publishing actions and it will then publish content for that post
 			foreach ( $arrPublishingActions as $pubAction ) {
 				$actionId = $pubAction['id'];
 
 				$action_meta = unserialize($pubAction['value']);
 
-				if ( $post['templateId'] == $action_meta['post_template'] ) {
+				if ( $post['publishTypeId'] == $action_meta['pta_pt_post_type'] ) {
 					try{
 						$this->publish_post_with_publishing_action( $post, $action_meta );
 					}catch( Exception $ex ) {
 						//we capture individual errors and report them,
 						$message = array(
-							'message' => 'Import of Feed Failed',
+							'message' => 'Import of Post Failed',
 							'status' => 'error',
-							'details' => 'The Feed Id that failed:' . $post['postId'] . ' with the following error:' . $ex->getMessage() );
+							'details' => 'The Post Id that failed:' . $post['postId'] . ' with the following error:' . $ex->getMessage() );
 						$this->obj_api->_log_message( $message, "1" );
 					}
-					$blnDidPublish = true;
 				}
 			}
-
 		}catch( Exception $ex ) {
 			//some other occurred while we tried publish, not sure what
 			//capture this and log it and then throw it as well as what info we have
-
 			$message = array(
-				'message' => 'Import of Feed Failed',
+				'message' => 'Import of Post Failed',
 				'status' => 'error',
 				'details' => 'A general exception happened during the publishing of specific post. Post Id not published:' . $post['postId'] . ' specific message:' . $ex->getMessage() );
 			$this->obj_api->_log_message( $message, "1" );

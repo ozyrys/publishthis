@@ -129,20 +129,18 @@ class Publishthis_Endpoint {
    *
    * @param integer $feedId
    */
-  private function actionPublish($postId) {
+  private function actionPublish($postId, $nid) {
 	  if (empty($postId)) {
-	    $this->sendFailure("Empty feed id");
+	    $this->sendFailure("Empty post id");
 	    return;
 	  }
 
-	  //ok, now go try and publish the feed passed in
-
+	  //ok, now go try and publish the post passed in
 	  try {
-	    $this->obj_publish->publish_specific_post($postId);
+	    $this->obj_publish->publish_specific_post($postId, $nid);
 	  } catch (Exception $ex) {
 	    //looks like there was an internal error in publish, we will need to send a failure.
 	    //no need to log here, as our internal methods have all ready logged it
-
 	    $this->sendFailure($ex->getMessage());
 	    return;
 	  }
@@ -241,7 +239,8 @@ class Publishthis_Endpoint {
 	  	  break;
 	  	case "publish":
 	  	  $postId = intval($arrEndPoint["postId"], 10);
-	  	  $this->actionPublish($postId);
+				$nid = intval( $arrEndPoint["publishedId"], 10 );
+	  	  $this->actionPublish($postId, $nid);
 	  	  break;
 	  	case "getAuthors":
 	  	  $this->actionGetAuthors();
