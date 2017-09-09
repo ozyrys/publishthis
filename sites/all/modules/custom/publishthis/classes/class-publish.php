@@ -39,7 +39,22 @@ class Publishthis_Publish {
 	 * @param int     $action_id   Publishing Action id
 	 * @param array   $action_meta Publishing Action data
 	 */
-	function publish_post_with_publishing_action( $post, $action_meta ) {
+	function publish_post_with_publishing_action($post, $action_meta, $nid) {
+
+    // Unique set name
+    $set_name = '_publishthis_set_' . $action_meta['pta_pt_post_type'] . '_' . $post['id'];
+
+    // Look for nid if it's not provided by API
+    if (empty($nid) || ($nid <= 0)){
+      $nid = $this->_get_post_by_docid ( $set_name );
+    }
+
+    //don't update existed posts if synchronization is turned off
+    if ( $nid && ! $action_meta['pta_override_edits'] ) {
+      $returnInfo = array( 'error' => false, 'successMessage' => 'Updates are turned off, so, skipping this post');
+      return $returnInfo;
+    }
+
     $htmlContent = '';
     try{
       $curated_content = $this->obj_api->get_post_html($post['id'], $action_meta['pta_post_template'], null);
@@ -47,13 +62,15 @@ class Publishthis_Publish {
       $message = array(
         'message' => 'Generate Post HTML',
         'status' => 'error',
-        'details' => 'Unable to generate the HTML for PublishThis Post ID:' . $post['id'] . ', html template id:' . $action_meta['pta_post_template'] . ', html template url:' . $action_meta['pta_post_template_url'] . ' because of:' . $ex->getMessage() );
-      $publishthis->log->addWithLevel( $message, "1" );
+        'details' => 'Unable to generate the HTML for PublishThis Post ID:' . $post['id'] . ', html template id:' . $action_meta['pta_post_template'] . ', html template url:' . $action_meta['pta_post_template_url'] . ' because of:' . $ex->getMessage()
+      );
+      $this->obj_api->_log_message( $message, "1" );
 
       throw $ex;
     }
 
-    $result = $this->_update_content( $curated_content, $action_meta, $post['title'] );
+    // Run Drupal API to add/update node
+    $result = $this->_update_content( $nid, $curated_content, $action_meta, $post['title'], $set_name);
 
     $returnInfo = array( 'error' => false, 'successMessage' => 'Post was ' . $result['status'] . '.', 'publishedId' => $result['nid']);
     return $returnInfo;
@@ -69,11 +86,12 @@ class Publishthis_Publish {
 	 * @param unknown $curated_content      Imported content
 	 * @param unknown $content_features     Additional content info
 	 */
-	private function _update_content( $curated_content, $content_features, $post_title ) {
-    $node = !empty($nid) ? node_load($nid) : new stdClass();
+	private function _update_content($nid, $curated_content, $content_features, $post_title, $set_name) {
+
+	  $node = !empty($nid) ? node_load($nid) : new stdClass();
     $node->type = 'page';
     node_object_prepare($node);
-
+    watchdog('hlp', '#3#');
     $node->uid = 1;
     $node->status = 1;
     $node->language = LANGUAGE_NONE;
@@ -88,6 +106,14 @@ class Publishthis_Publish {
     $node = node_submit($node);
     node_save($node);
 
+    // Set info about post
+    if(empty($nid) || ($nid <= 0)) {
+      $this->_set_docid( $node->nid, $set_name, $set_name);
+    }
+
+    // Set current update date
+    $this->_set_curatedate_by_nid($node->nid, time());
+
     $status = empty($nid) ? 'inserted' : 'updated';
 
 		return  array('nid' => $node->nid, 'status' => $status);
@@ -99,8 +125,8 @@ class Publishthis_Publish {
 	 * @param string $text
 	 */
 	private function _build_node_summary( $content ) {
-		$summary = isset($content->summary) && strlen($content->summary)>0 ? $content->summary : '';
-		return text_summary('<p class="pt-excerpt">'.$summary. '</p>' );
+		$summary = truncate_utf8(strip_tags($content), 300, TRUE, TRUE, 1);
+		return $summary;
 	} 
 
 	/**
@@ -131,21 +157,6 @@ class Publishthis_Publish {
 			->execute()
 			->fetchAssoc();
 		return $result ? $result['nid'] : 0;
-	}
-
-	/**
-	 *   Get node curate date by node id
-	 *
-	 * @param unknown $nid
-	 */
-	private function _get_curatedate_by_nid( $nid ) {
-		$result = db_select('pt_docid_links', 'dl')
-			->fields('dl', array('curateUpdateDate','nid'))
-			->condition('dl.nid', $nid, '=')
-			->range(0,1)		
-			->execute()
-			->fetchAssoc();
-		return $result ? $result['curateUpdateDate'] : null;
 	}
 
 	/**
@@ -279,7 +290,7 @@ class Publishthis_Publish {
 
 				if ( $post['publishTypeId'] == $action_meta['pta_pt_post_type'] ) {
 					try{
-						$this->publish_post_with_publishing_action( $post, $action_meta );
+						$this->publish_post_with_publishing_action($post, $action_meta, $nid);
 					}catch( Exception $ex ) {
 						//we capture individual errors and report them,
 						$message = array(
