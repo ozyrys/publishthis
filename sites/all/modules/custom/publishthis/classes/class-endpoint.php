@@ -94,9 +94,9 @@ class Publishthis_Endpoint {
 
 	  if (empty($apiResponse)) {
 	    $message = array(
-	  	'message' => 'Verify Plugin Endpoint',
-	  	'status'  => 'error',
-	  	'details' => 'Asked to verify our install at: ' . date("Y-m-d H:i:s") . ' failed because api token is not valid'
+	  	  'message' => 'Verify Plugin Endpoint',
+	  	  'status'  => 'error',
+	  	  'detai  ls' => 'Asked to verify our install at: ' . date("Y-m-d H:i:s") . ' failed because api token is not valid'
 	    );
 	    $this->obj_api->_log_message($message, "1");
 
@@ -225,31 +225,31 @@ class Publishthis_Endpoint {
 	  try {
 	    $bodyContent = file_get_contents('php://input');
 	    $this->obj_api->_log_message(array(
-	  	'message' => 'Endpoint Request',
-	  	'status'  => 'info',
-	  	'details' => $bodyContent
+	  	  'message' => 'Endpoint Request',
+	  	  'status'  => 'info',
+	  	  'details' => $bodyContent
 	    ), "2");
 
 	    $arrEndPoint = json_decode($bodyContent, TRUE);
 	    $action      = $arrEndPoint["action"];
 
 	    switch ($action) {
-	  	case "verify":
-	  	  $this->actionVerify();
+	  	  case "verify":
+	  	    $this->actionVerify();
 	  	  break;
-	  	case "publish":
-	  	  $postId = intval($arrEndPoint["postId"], 10);
-				$nid = intval( $arrEndPoint["publishedId"], 10 );
-	  	  $this->actionPublish($postId, $nid);
+	  	  case "publish":
+	  	    $postId = intval($arrEndPoint["postId"], 10);
+			  	$nid = intval( $arrEndPoint["publishedId"], 10 );
+	  	    $this->actionPublish($postId, $nid);
 	  	  break;
-	  	case "getAuthors":
-	  	  $this->actionGetAuthors();
+	  	  case "getAuthors":
+	  	    $this->actionGetAuthors();
 	  	  break;
-	  	case "getCategories":
-	  	  $this->actionGetCategories();
+	  	  case "getCategories":
+	  	    $this->actionGetCategories();
 	  	  break;
-	  	default:
-	  	  $this->sendFailure("Empty or bad request made to endpoint");
+	  	  default:
+	  	    $this->sendFailure("Empty or bad request made to endpoint");
 	  	  break;
 	    }
 	  } catch (Exception $ex) {
