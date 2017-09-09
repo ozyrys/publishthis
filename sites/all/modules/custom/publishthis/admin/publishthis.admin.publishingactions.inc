@@ -114,13 +114,17 @@ function publishthis_addnew_publishingactions($form, &$form_state) {
 	  $pt_value = array();
   }
 
+  $form['pta_wrapper-open']   = array(
+    '#markup' => '<div class="pta-form-wrapper">'
+  );
+
   $form['pta_header']   = array(
-	  '#markup' => '<div class="wrap"><div id="icon-edit" class="icon32 icon32-posts-publishthis_action"></div>
+	  '#markup' => '<div class="header"><div id="icon-edit" class="icon32 icon32-posts-publishthis_action"></div>
             <h2><span style="line-height:48px;vertical-align:top;">' . $text . '</span></h2></div>'
   );
 
   $form['pta_header_sublink'] = array(
-	  '#markup' => '<ul><li>' . l('Publishing Actions', 'admin/config/system/publishthis/publishing-actions') . '</li></ul>'
+	  '#markup' => '<ul class="action-links"><li>' . l('Publishing Actions', 'admin/config/system/publishthis/publishing-actions') . '</li></ul>'
   );
 
   $form['pta_action_title'] = array(
@@ -224,6 +228,7 @@ function publishthis_addnew_publishingactions($form, &$form_state) {
 
   $def_ignore_img_option = "Ok to ignore original image's size?:  Original images can be smaller than your set size. If you check this, then we will ignore that original size, and resize to your set size. Smaller images will then have padding added to match the size you indicate. ";
   $form['pta_ignore_original_image'] = array(
+    '#title'         => t('Featured Image Size'),
     '#type'          => 'checkboxes',
     '#options'       => array('resize_featured_image' => $def_ignore_img_option),
     '#default_value' => !empty($pt_value) ? (array) $pt_value['pta_ignore_original_image'] : array('resize_featured_image' => 'resize_featured_image'),
@@ -232,7 +237,6 @@ function publishthis_addnew_publishingactions($form, &$form_state) {
   // Featured Image fields
   $form['pta_image_size'] = array(
     '#type'          => 'radios',
-    '#title'         => t('Featured Image Size'),
     '#options'       => array(
       'theme_default'    => t('Theme Default'),
       'custom'           => t('Width'),
@@ -296,6 +300,10 @@ function publishthis_addnew_publishingactions($form, &$form_state) {
     '#options'       => array('0' => t('No'), '1' => 'Yes'),
     '#default_value' => isset($pt_value['pta_add_tags']) ? $pt_value['pta_add_tags'] : '1',
     '#description'   => t(''),
+  );
+
+  $form['pta_wrapper-close']   = array(
+    '#markup' => '</div>'
   );
 
   $form['editId'] = array(
@@ -462,31 +470,31 @@ function theme_publishthis_addnew_publishingactions($variables) {
       if ($k == 'pta_image_size') {
         foreach (element_children($variables['form'][$k]) as $name) {
           $table_data[$name] = array(
-            drupal_render($variables['form'][$k][$name]),
+            $name => drupal_render($variables['form'][$k][$name]),
           );
           switch ($name) {
             case 'custom':
               if (!empty($variables['form']['pta_image_width'])) {
-                $table_data[$name][] = drupal_render($variables['form']['pta_image_width']);
+                $table_data[$name][$name] .= drupal_render($variables['form']['pta_image_width']);
               }
               if (!empty($variables['form']['pta_image_height'])) {
-                $table_data[$name][] = drupal_render($variables['form']['pta_image_height']);
+                $table_data[$name][$name] .= drupal_render($variables['form']['pta_image_height']);
               }
-              break;
+            break;
             case 'custom_max_width':
               if (!empty($variables['form']['pta_image_maxwidth'])) {
-                $table_data[$name][] = drupal_render($variables['form']['pta_image_maxwidth']);
+                $table_data[$name][$name] .= drupal_render($variables['form']['pta_image_maxwidth']);
               }
-              break;
+            break;
             case 'custom_up_to_max_width':
               if (!empty($variables['form']['pta_image_up_to_maxwidth'])) {
-                $table_data[$name][] = drupal_render($variables['form']['pta_image_up_to_maxwidth']);
+                $table_data[$name][$name] .= drupal_render($variables['form']['pta_image_up_to_maxwidth']);
               }
-              break;
+            break;
           }
         }
         $headers = array();
-        $table = '<div class="form-item"><label>'.t('Featured Image Size').'</label>'.theme_table(array('header' => $headers, 'rows' => $table_data, 'attributes' => array(), 'caption' => '', 'colgroups' => array(), 'sticky' => 0, 'empty' => '')).'</div>';
+        $table = '<div class="form-item pta-image-size">'.theme_table(array('header' => $headers, 'rows' => $table_data, 'attributes' => array(), 'caption' => '', 'colgroups' => array(), 'sticky' => 0, 'empty' => '')).'</div>';
         $output .= $table;
         unset($variables['form'][$k]);
       }
