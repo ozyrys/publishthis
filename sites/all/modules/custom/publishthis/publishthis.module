@@ -257,30 +257,3 @@ function _init_pt_endpoint() {
   $objEndpoint = new Publishthis_Endpoint();
   $objEndpoint->process_request();
 }
-
-/**
-* Hook to display custom styles and Publishthis logo when node is rendering
-*/
-function publishthis_node_view($node, $view_mode, $langcode) {
-  global $pt_settings_value;
-  $objUtils = new Publishthis_Utils();
-
-  if( $pt_settings_value['curatedby'] == 'page' ) {
-    $result = db_select('pt_docid_links', 'dl')
-      ->fields('dl', array('docId','nid'))
-      ->condition('dl.nid', $node->nid, '=')
-      ->range(0,1)    
-      ->execute()
-      ->fetchAssoc();
-    if( $result ) {
-      $node->content['additional-text'] = array(
-         '#markup' => $objUtils->getCuratedByLogo(),
-         '#weight' => 100
-      );
-    }    
-  }
-
-  //render Publishthis custom css
-  $css = $objUtils->display_css(false);
-  drupal_add_css($css, 'inline');
-}

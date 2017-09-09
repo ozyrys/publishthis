@@ -1,7 +1,6 @@
 <?php
 
 abstract class Publishthis_Utils_Common {
-	abstract function _get_style_value( $key );
 
 	static $defaultPhotoWidth = 120;
 	static $defaultPhotoHeight = 90;
@@ -330,168 +329,9 @@ abstract class Publishthis_Utils_Common {
 		return $align;
 	}
 
-
-
-	/**
-	 *  Returns Curated By Logo image by index
-	 *
-	 * @param integer $index The index of the image
-	 */
-	function getCuratedByLogoImage( $index ) {
-		$image = "";
-
-		if( !defined('CURATED_LOGO_PATH') ) define( 'CURATED_LOGO_PATH', 'http://img.publishthis.com/images/ptbuttons/' );
-
-		switch ( $index ) {
-		case '1':
-			$image = "curatedwith-box-darkgray.png";
-			break;
-		case '2':
-			$image = "curatedwith-box-lightgray-trans.png";
-			break;
-		case '3':
-			$image = "curatedwith-box-white.png";
-			break;
-		case '4':
-		case '5':
-			$image = "curatedwith-small-transparent.png";
-			break;
-		default:
-			$image = "curatedwith-box-darkgray.png";
-			break;
-		}
-
-		$image = CURATED_LOGO_PATH . $image;
-
-		return $image;
-	}
-
-	/**
-	 *   Build dynamic styles
-	 */
-  function display_css($wrap=true) {
-    $style = '';
-
-    if($wrap) {
-      $style .= '<style type="text/css">';
-    }
-
-    foreach ($this->css_sections as $section_key => $section_title) {
-      $style .= $this->build_style( $section_key );
-    }
-
-    if($wrap) {
-      $style .= '</style>';
-    }
-    return $style;
-  }
-
-	/**
-	 * Build single dynamic style
-	 */
-	function build_style( $key, $is_link=false ) {		
-		$style = $return_style = '';
-		
-		//Build font styles
-		$font = $this->_get_style_value( $key.'_font' );
-		$font_custom = $this->_get_style_value( $key.'_font-custom' );
-		if ( !empty( $font ) && $font != 'default' && !empty( $font_custom ) ) $style .= 'font-family: "'.$font_custom.'";';
-
-		$font_size = $this->_get_style_value( $key.'_font_size' );
-		$font_size_custom = $this->_get_style_value( $key.'_font_size-custom' );
-		if ( !empty( $font_size ) && $font_size != 'default' && !empty( $font_size_custom ) ) $style .= 'font-size: '.$font_size_custom.';';
-
-		$font_color = $this->_get_style_value( $key.'_font_color' );
-		$font_color_custom = $this->_get_style_value( $key.'_font_color-custom' );
-		if ( !empty( $font_color ) && $font_color != 'default' && !empty( $font_color_custom ) ) $style .= 'color: '.$font_color_custom.';';
-
-		$font_style = $this->_get_style_value( $key.'_font_style' );
-		if ( !empty( $font_style ) && $font_style != 'default' ) {
-			$font_style_bold = $this->_get_style_value( $key.'_font_style-bold' );
-			if( $font_style_bold == "1" ) $style .= "font-weight: bold;";
-			else $style .= "font-weight: normal;";
-
-			$font_style_italic = $this->_get_style_value( $key.'_font_style-italic' );			
-			if( $font_style_italic == "1" ) $style .= "font-style: italic;";
-			else $style .= "font-style: normal;";
-
-			$font_style_underline = $this->_get_style_value( $key.'_font_style-underline' );			
-			if( $font_style_underline == "1" ) $style .= "text-decoration: underline;";
-			else $style .= "text-decoration: none;";
-		}
-
-		//Build border styles
-		$border_size = $this->_get_style_value( $key.'_border_size' );
-		$border_size_custom = $this->_get_style_value( $key.'_border_size-custom' );
-		if ( !empty( $border_size ) && $border_size != 'default' && !empty( $border_size_custom ) ) $style .= 'border-width: '.$border_size_custom.'pt;border-style:solid;';
-
-		$border_color = $this->_get_style_value( $key.'_border_color' );
-		$border_color_custom = $this->_get_style_value( $key.'_border_color-custom' );
-		if ( !empty( $border_color ) && $border_color != 'default' && !empty( $border_color_custom ) ) $style .= 'border-color: '.$border_color_custom.';';
-
-		$background_color = $this->_get_style_value( $key.'_background_color' );
-		$background_color_custom = $this->_get_style_value( $key.'_background_color-custom' );
-		if ( !empty( $background_color ) && $background_color != 'default' && !empty( $background_color_custom ) ) $style .= 'background-color: '.$background_color_custom.';';
-
-		$margins = $this->_get_style_value( $key.'_margins' );
-		if ( !empty( $margins ) && $margins != 'default' ) {
-			$margin_top = $this->_get_style_value( $key.'_margins-top' );
-			if( !empty( $margin_top ) ) $style .= "margin-top: {$margin_top}pt;";
-
-			$margin_left = $this->_get_style_value( $key.'_margins-left' );
-			if( !empty( $margin_left ) ) $style .= "margin-left: {$margin_left}pt;";
-
-			$margin_right = $this->_get_style_value( $key.'_margins-right' );
-			if( !empty( $margin_right ) ) $style .= "margin-right: {$margin_right}pt;";
-
-			$margin_btm = $this->_get_style_value( $key.'_margins-btm' );
-			if( !empty( $margin_btm ) ) $style .= "margin-bottom: {$margin_btm}pt;";			
-		}
-
-		$paddings = $this->_get_style_value( $key.'_paddings' );
-		if ( !empty( $paddings ) && $paddings != 'default' ) {
-			$padding_top = $this->_get_style_value( $key.'_paddings-top' );
-			if( !empty( $padding_top ) ) $style .= "padding-top: {$padding_top}pt;";
-
-			$padding_left = $this->_get_style_value( $key.'_paddings-left' );
-			if( !empty( $padding_left ) ) $style .= "padding-left: {$padding_left}pt;";
-
-			$padding_right = $this->_get_style_value( $key.'_paddings-right' );
-			if( !empty( $padding_right ) ) $style .= "padding-right: {$padding_right}pt;";
-
-			$padding_btm = $this->_get_style_value( $key.'_paddings-btm' );
-			if( !empty( $padding_btm ) ) $style .= "padding-bottom: {$padding_btm}pt;";			
-		}
-
-		//Wrap into css class
-		if( !empty( $style  ) ) {
-			$css_class = str_replace('_', '-', $key);
-			switch ($css_class) {
-				case 'title':
-					$return_style = "p.pt-".$css_class.", h4.pt-".$css_class." {" . $style . "}\n";					
-					$return_style .= "p.pt-".$css_class." a, h4.pt-".$css_class." a {" . $style . "}\n";
-					$return_style .= "p.pt-".$css_class.">a, h4.pt-".$css_class.">a {border:none !important;background-color:transparent;}\n";
-					break;
-
-				case 'readmore':
-					$return_style = "p.pt-".$css_class.", div.pt-".$css_class." {" . $style . "}\n";					
-					$return_style .= "p.pt-".$css_class." a, div.pt-".$css_class." a {" . $style . "}\n";
-					$return_style .= "p.pt-".$css_class.">a, div.pt-".$css_class.">a {border:none !important;background-color:transparent;}\n";
-					break;
-				
-				default: 
-					$return_style = "p.pt-".$css_class.", div.pt-".$css_class." {" . $style . "}\n";
-					break;
-			}
-			
-		}
-		
-		return $return_style;
-	}
-
 	function getNumberName( $intNumber ) {
 		$numbers = array( 1 => "one", 2 => "two", 3 => "three", 4 => "four", 5 => "five" );
-		return isset($numbers[$intNumber]) ? $numbers[$intNumber] : "none";  	
+		return isset($numbers[$intNumber]) ? $numbers[$intNumber] : "none";
 	}
 
 	/**
@@ -505,8 +345,8 @@ abstract class Publishthis_Utils_Common {
 		return $url; //no longer need to return url based tracking items
 
 	}
-	
-	
-		
-	
+
+
+
+
 }

@@ -10,7 +10,6 @@ function publishthis_settings($form, &$form_state) {
   global $base_url;
 
   $objAPI   = new Publishthis_API();
-  $objUtils = new Publishthis_Utils();
 
   // Find client info
   $client = $pt_client_info;
