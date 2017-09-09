@@ -70,7 +70,7 @@ function publishthis_addnew_publishingactions($form, &$form_state) {
   $edit_id = arg(5);
 
   $objAPI           = new Publishthis_API();
-  $template_APIdata = $objAPI->get_template_option();
+  $template_APIdata = $objAPI->get_template_options();
   $postTypes_APIdata = $objAPI->get_post_publish_types();
 
   // Find first templateId value from AOI to show dropdown, if none option saved in database

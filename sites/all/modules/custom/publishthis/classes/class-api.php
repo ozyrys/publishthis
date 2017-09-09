@@ -159,12 +159,12 @@ class Publishthis_API extends Publishthis_API_Common {
 
   
   /**
-   * Gets an option value by key
+   * Gets template options from PublishThis
    *
    * @param unknown $key Option key
    * @return Option value
    */
-  public function get_template_option() {
+  public function get_template_options() {
     return $this->get_html_templates();
   }
 }
