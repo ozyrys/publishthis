@@ -67,7 +67,7 @@ function publishthis_publishingactions() {
 function publishthis_addnew_publishingactions($form, &$form_state) {
   global $pt_settings_value;
   // Form edit id
-  $edit_id = arg(5);
+  $edit_id = arg(4);
 
   $objAPI           = new Publishthis_API();
   $template_APIdata = $objAPI->get_template_options();
@@ -88,7 +88,7 @@ function publishthis_addnew_publishingactions($form, &$form_state) {
   $postType_options = _get_post_type_options($postTypes_APIdata);
 
   // Edit Action
-  if (arg(4) == 'publishing-editactions' && is_numeric($edit_id)) {
+  if (arg(3) == 'publishing-editactions' && is_numeric($edit_id)) {
 	$text = t('Edit Publishing Action');
 	// Find record
 	$result = db_select('pt_publishactions', 'pt')
