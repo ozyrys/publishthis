@@ -54,9 +54,28 @@ class Publishthis_Publish {
       return array( 'error' => true, 'errorMessage' => 'Updates are turned off, so, skipping this post. Enable "Allow PublishThis to Override Edits" on Publisg action.');
     }
 
-    $htmlContent = '';
+    $curated_content = '';
     try{
       $curated_content = $this->obj_api->get_post_html($post['id'], $action_meta['pta_post_template'], null);
+
+      $strHtmlTemplateUrl = $action_meta['pta_post_template_url'];
+      if (!empty($strHtmlTemplateUrl)){
+        if (! (substr($strHtmlTemplateUrl, 0, strlen("http")) === "http")){
+          $strHtmlTemplateUrl = null;
+        }
+      }
+
+      if (!empty($strHtmlTemplateUrl)){
+        //TODO fix the webapi so it checks for template url param and not valid template id
+        $arrHTMLItems = $this->obj_api->get_post_html($post['id'], "989", $strHtmlTemplateUrl);
+      }else{
+        $arrHTMLItems = $this->obj_api->get_post_html($post['id'], $action_meta['pta_post_template'], null);
+      }
+
+      if (!empty($arrHTMLItems) && (count($arrHTMLItems) > 0)){
+        $curated_content = $arrHTMLItems[0];
+      }
+
     }catch( Exception $ex ) {
       $message = array(
         'message' => 'Generate Post HTML',

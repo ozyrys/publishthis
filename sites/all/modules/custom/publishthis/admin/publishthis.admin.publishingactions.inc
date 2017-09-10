@@ -320,6 +320,16 @@ function publishthis_addnew_publishingactions($form, &$form_state) {
 }
 
 /**
+ * Implements of hook_form_validate()
+ * @desc Submit form value
+ */
+function publishthis_addnew_publishingactions_validate($form, &$form_state) {
+  if (isset($form_state['values']['pta_post_template_url']) && $form_state['values']['pta_post_template_url'] != '' && !valid_url($form_state['values']['pta_post_template_url'], true)) {
+    form_set_error('pta_post_template_url', t('Invalid url'));
+  }
+}
+
+/**
  * Implements of hook_form_submit()
  * @desc Submit form value
  */
@@ -397,6 +407,15 @@ function edit_publishthis_publishing_actions($form, $form_state) {
   return $form;
 }
 
+/**
+ * Implements of hook_form_validate()
+ * @desc Submit form value
+ */
+function edit_publishthis_publishing_actions_validate($form, &$form_state) {
+  if (isset($form_state['values']['pta_post_template_url']) && $form_state['values']['pta_post_template_url'] != '' && !valid_url($form_state['values']['pta_post_template_url'], true)) {
+    form_set_error('pta_post_template_url', t('Invalid url'));
+  }
+}
 
 /**
  * Implements of hook_form_submit()
