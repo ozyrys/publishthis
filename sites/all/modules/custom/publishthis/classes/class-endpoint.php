@@ -246,6 +246,31 @@ class Publishthis_Endpoint {
 	    $arrEndPoint = json_decode($bodyContent, TRUE);
 	    $action      = $arrEndPoint["action"];
 
+			// If it's not "verify" action Validate API token
+			if ($action != 'verify') {
+				$current_token = $this->obj_api->_get_token();
+
+				$is_token_valid = empty($current_token) ? FALSE : TRUE;
+				if (!empty($current_token)) {
+					$token_status = $this->obj_api->validate_token($current_token);
+					if (!isset($token_status) || $token_status['valid'] != 1) {
+						$is_token_valid = FALSE;
+					}
+				}
+
+				if (!$is_token_valid) {
+					$message = array(
+						'message' => 'API tokem mismatch',
+						'status' => 'error',
+						'details' => 'We could not authenticate your API token, please correct the error and try again.'
+					);
+					$this->obj_api->_log_message($message, "1");
+
+					$this->sendFailure("We could not authenticate your API token, please correct the error and try again.");
+					return;
+				}
+			}
+
 	    switch ($action) {
 	  	  case "verify":
 	  	    $this->actionVerify();
