@@ -308,7 +308,6 @@ class Publishthis_Publish {
       $published = false;
 			//loop the publishing actions and it will then publish content for that post
 			foreach ( $arrPublishingActions as $pubAction ) {
-				$actionId = $pubAction['id'];
 
 				$action_meta = unserialize($pubAction['value']);
 
