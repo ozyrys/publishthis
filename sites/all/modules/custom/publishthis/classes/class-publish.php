@@ -53,26 +53,21 @@ class Publishthis_Publish {
       return array( 'error' => true, 'errorMessage' => 'Updates are turned off, so, skipping this post. Enable "Allow PublishThis to Override Edits" on Publisg action.');
     }
 
-    $curated_content = '';
     try{
-      $curated_content = $this->obj_api->get_post_html($post['id'], $action_meta['pta_post_template'], null);
-
+      // Look for template url
       $strHtmlTemplateUrl = $action_meta['pta_post_template_url'];
       if (!empty($strHtmlTemplateUrl)){
         if (! (substr($strHtmlTemplateUrl, 0, strlen("http")) === "http")){
           $strHtmlTemplateUrl = null;
         }
       }
-
+      $arrHTMLItems = array();
+      // Get post html from template url or defined template
       if (!empty($strHtmlTemplateUrl)){
         //TODO fix the webapi so it checks for template url param and not valid template id
         $arrHTMLItems = $this->obj_api->get_post_html($post['id'], "989", $strHtmlTemplateUrl);
       }else{
         $arrHTMLItems = $this->obj_api->get_post_html($post['id'], $action_meta['pta_post_template'], null);
-      }
-
-      if (!empty($arrHTMLItems) && (count($arrHTMLItems) > 0)){
-        $curated_content = $arrHTMLItems[0];
       }
 
     }catch( Exception $ex ) {
@@ -86,7 +81,7 @@ class Publishthis_Publish {
     }
 
     // Run Drupal API to add/update node
-    $result = $this->_update_content($nid, $curated_content, $action_meta, $post, $set_name);
+    $result = $this->_update_content($nid, $arrHTMLItems, $action_meta, $post, $set_name);
     // If error
     if (isset($result['error']) && $result['error'] === true) {
       $error_message = 'Node creation exception error';
@@ -104,13 +99,13 @@ class Publishthis_Publish {
 	 *   Save import content as a node
 	 *
 	 * @param unknown $nid              	Node ID
-   * @param unknown $curated_content      Imported content
+   * @param unknown $arrHTMLItems      Imported html items
    * @param unknown $content_features     Additional content info
 	 * @param number  $post              The PublishThis Post object
 	 * @param unknown $set_name                docid linked to this post
 	 * @param unknown $arrPostCategoryNames Category
 	 */
-	private function _update_content($nid, $curated_content, $content_features, $post, $set_name) {
+	private function _update_content($nid, $arrHTMLItems, $content_features, $post, $set_name) {
     try {
       $node = !empty($nid) ? node_load($nid) : new stdClass();
       $node->type = $content_features['pta_content_type'];
@@ -132,9 +127,14 @@ class Publishthis_Publish {
       $node->language = LANGUAGE_NONE;
       $node->is_new = empty($nid) ? TRUE : FALSE;
 
+      $curated_content = '';
+      if (!empty($arrHTMLItems) && (count($arrHTMLItems) > 0)){
+        $curated_content = $arrHTMLItems[0];
+      }
+
       $node->body[$node->language][0]['value'] = $curated_content;
       $node->body[$node->language][0]['format'] = 'full_html';
-      $node->body[$node->language][0]['summary'] = $this->_build_node_summary($curated_content);
+      $node->body[$node->language][0]['summary'] = $this->_build_node_summary($arrHTMLItems);
 
       $node->title = !empty($post['title']) ? $post['title'] : NODE_NO_TITLE;
 
@@ -179,9 +179,8 @@ class Publishthis_Publish {
 	 * @param string $text
 	 */
 	private function _build_node_summary( $content ) {
-    $summary = isset($content[0]) && strlen($content[0])>0 ? trim(preg_replace('/\s\s+/', ' ', strip_tags($content[0]))) : '';
-		$summary = strlen($summary)>0 ? truncate_utf8($summary, 300, TRUE, TRUE, 1) : '';
-		return $summary;
+    $summary = isset($content->summary) && strlen($content->summary)>0 ? $content->summary : '';
+    return text_summary('<p class="pt-excerpt">'.$summary. '</p>' );
 	} 
 
 	/**
