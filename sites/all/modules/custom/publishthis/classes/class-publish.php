@@ -173,46 +173,6 @@ class Publishthis_Publish {
 	}
 
 	/**
-	 *   Get remove unused nodes
-	 *
-	 * @param unknown $docid
-	 */
-	private function _delete_individuals( $new_set_docids, $set_name ) {
-		$nodes_deleted = 0;
-
-		//get nodes to remove
-		$query = db_select('pt_docid_links', 'dl')
-			->fields('dl', array('id','nid'))
-			->condition('dl.setName', $set_name, '=');
-
-		if( count($new_set_docids) > 0 ) {
-			$query->condition('dl.docId', $new_set_docids, 'NOT IN');
-		}
-
-		$result = $query->execute();
-		
-		if($result->rowCount() > 0 ) {
-			while($record = $result->fetchAssoc()) {
-				//delete node
-				echo 'Node deleted: '.$record['nid'].'<br>';
-				node_delete( $record['nid'] );
-				$nodes_deleted++;
-			}
-			
-			//delete docs links
-			$links_query = db_delete('pt_docid_links')->condition('setName', $set_name, '=');
-
-			if( count($new_set_docids) > 0 ) {
-				$links_query->condition('docId', $new_set_docids, 'NOT IN');
-			}
-			$links_query->execute();
-	
-		}
-		
-		return $nodes_deleted;
-	}
-
-	/**
 	 * Generates resized featured image and link it to the node
 	 */
   private function _get_featured_image( $contentImageUrl, $content_features ) {
