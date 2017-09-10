@@ -34,10 +34,9 @@ class Publishthis_Publish {
 	/**
 	 * Publishes the single post with a Publishing Actions meta information
 	 *
-	 * @param int     $post_id     Publishthis Post id
-	 * @param array   $post_meta   Publishthis Post data (display name, etc.)
-	 * @param int     $action_id   Publishing Action id
-	 * @param array   $action_meta Publishing Action data
+	 * @param int     $post     Publishthis Post object
+	 * @param array   $action_meta   Publishthis Publish Action data
+	 * @param array   $nid Node id
 	 */
 	function publish_post_with_publishing_action($post, $action_meta, $nid) {
 
@@ -87,7 +86,7 @@ class Publishthis_Publish {
     }
 
     // Run Drupal API to add/update node
-    $result = $this->_update_content( $nid, $curated_content, $action_meta, $post['title'], $set_name);
+    $result = $this->_update_content($nid, $curated_content, $action_meta, $post, $set_name);
     // If error
     if (isset($result['error']) && $result['error'] === true) {
       $error_message = 'Node creation exception error';
@@ -107,12 +106,11 @@ class Publishthis_Publish {
 	 * @param unknown $nid              	Node ID
    * @param unknown $curated_content      Imported content
    * @param unknown $content_features     Additional content info
-	 * @param number  $post_title              The PublishThis Post title
+	 * @param number  $post              The PublishThis Post object
 	 * @param unknown $set_name                docid linked to this post
 	 * @param unknown $arrPostCategoryNames Category
 	 */
-	private function _update_content($nid, $curated_content, $content_features, $post_title, $set_name) {
-	  watchdog('hlp', '<pre>'.print_r($content_features,1).'</pre>');
+	private function _update_content($nid, $curated_content, $content_features, $post, $set_name) {
     try {
       $node = !empty($nid) ? node_load($nid) : new stdClass();
       $node->type = $content_features['pta_content_type'];
@@ -138,8 +136,18 @@ class Publishthis_Publish {
       $node->body[$node->language][0]['format'] = 'full_html';
       $node->body[$node->language][0]['summary'] = $this->_build_node_summary($curated_content);
 
-      $node->title = !empty($post_title) ? $post_title : NODE_NO_TITLE;
+      $node->title = !empty($post['title']) ? $post['title'] : NODE_NO_TITLE;
 
+      // Featured image
+      $featured_image = isset($content_features['pta_featured_image']['save_featured_image']) && $content_features['pta_featured_image']['save_featured_image'] === 'save_featured_image' ? true : false;
+      if ( $featured_image && !empty($post['featuredDocument']->imageUrl)) {
+        $node->field_image[$node->language][0] = $this->_get_featured_image($post['featuredDocument']->imageUrl, $content_features);
+      }
+      else {
+        unset( $node->field_image[$node->language][0] );
+      }
+
+      // Save image
       $node = node_submit($node);
       node_save($node);
 
@@ -147,7 +155,6 @@ class Publishthis_Publish {
       if (empty($nid) || ($nid <= 0)) {
         $this->_set_docid($node->nid, $set_name, $set_name);
       }
-
       // Set current update date
       $this->_set_curatedate_by_nid($node->nid, time());
 
@@ -224,25 +231,30 @@ class Publishthis_Publish {
 	 */
   private function _get_featured_image( $contentImageUrl, $content_features ) {
 		$file_name = uniqid() . '_' . basename($contentImageUrl);
-		$ok_override_fimage_size = $content_features['ignore_original_image']['resize_featured_image']==="resize_featured_image" ? "1" : "0";
+		$ok_override_fimage_size = isset($content_features['pta_ignore_original_image']['resize_featured_image']) && $content_features['pta_ignore_original_image']['resize_featured_image']==="resize_featured_image" ? "1" : "0";
 
 		//build the url that we would need to download the featured image for
-		switch ( $content_features ['featured_image_size'] ) {
+		switch ( $content_features ['pta_image_size'] ) {
 			case 'custom':
 				$resize_pref = "Custom, ";
-				$contentImageUrl = $this->obj_utils->getResizedPhotoUrl( $contentImageUrl, $content_features['featured_image_width'], "1", $content_features ['featured_image_height'], $ok_override_fimage_size );
-				break;
+				$contentImageUrl = $this->obj_utils->getResizedPhotoUrl( $contentImageUrl, $content_features['pta_image_width'], "1", $content_features ['pta_image_height'], $ok_override_fimage_size, "0" );
+			break;
 
 			case 'custom_max_width':
 				$resize_pref = "custom max, ";
 				//$this->obj_api->_log_message( "custom max, ok to resize original featured image:" . $ok_override_fimage_size );
-				$contentImageUrl = $this->obj_utils->getResizedPhotoUrl( $contentImageUrl, $content_features['featured_image_maxwidth'], "1", 0, $ok_override_fimage_size  );
-				break;
+				$contentImageUrl = $this->obj_utils->getResizedPhotoUrl( $contentImageUrl, $content_features['pta_image_maxwidth'], "1", 0, $ok_override_fimage_size, "0" );
+      break;
+
+      case 'custom_up_to_max_width':
+        $resize_pref = "Custom up to max, ";
+        $contentImageUrl = $this->obj_utils->getResizedPhotoUrl( $contentImageUrl, $content_features['pta_image_up_to_maxwidth'], "1", 0, $ok_override_fimage_size, "1" );
+      break;
 
 			case 'theme_default':
 			default:
 				$resize_pref = "";
-				break;
+			break;
 		}
 
 		$message = array(
