@@ -51,7 +51,7 @@ class Publishthis_Publish {
 
     //don't update existed posts if synchronization is turned off
     if ( $nid && ! $action_meta['pta_override_edits'] ) {
-      $returnInfo = array( 'error' => false, 'successMessage' => 'Updates are turned off, so, skipping this post');
+      $returnInfo = array( 'error' => true, 'errorMessage' => 'Updates are turned off, so, skipping this post');
       return $returnInfo;
     }
 
@@ -296,7 +296,10 @@ class Publishthis_Publish {
 
 				if ( $post['publishTypeId'] == $action_meta['pta_pt_post_type'] ) {
 					try{
-						$this->publish_post_with_publishing_action($post, $action_meta, $nid);
+						$result = $this->publish_post_with_publishing_action($post, $action_meta, $nid);
+            if (isset($result['error']) && $result['error'] === true) {
+              return isset($result['errorMessage']) ? $result['errorMessage'] : 'Something went wrong in publish_post_with_publishing_action function of Drupal publishThis module';
+            }
             $published = true;
 					}catch( Exception $ex ) {
 						//we capture individual errors and report them,
