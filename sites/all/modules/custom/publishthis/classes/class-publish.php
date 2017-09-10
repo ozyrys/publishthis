@@ -51,8 +51,7 @@ class Publishthis_Publish {
 
     //don't update existed posts if synchronization is turned off
     if ( $nid && ! $action_meta['pta_override_edits'] ) {
-      $returnInfo = array( 'error' => true, 'errorMessage' => 'Updates are turned off, so, skipping this post');
-      return $returnInfo;
+      return array( 'error' => true, 'errorMessage' => 'Updates are turned off, so, skipping this post. Enable "Allow PublishThis to Override Edits" on Publisg action.');
     }
 
     $htmlContent = '';
@@ -65,13 +64,20 @@ class Publishthis_Publish {
         'details' => 'Unable to generate the HTML for PublishThis Post ID:' . $post['id'] . ', html template id:' . $action_meta['pta_post_template'] . ', html template url:' . $action_meta['pta_post_template_url'] . ' because of:' . $ex->getMessage()
       );
       $this->obj_api->_log_message( $message, "1" );
-
-      throw $ex;
+      return array( 'error' => true, 'errorMessage' => 'Unable to generate the HTML for PublishThis Post ID:' . $post['id'] . ', html template id:' . $action_meta['pta_post_template'] . ', html template url:' . $action_meta['pta_post_template_url'] . ' because of:' . $ex->getMessage());
     }
 
     // Run Drupal API to add/update node
     $result = $this->_update_content( $nid, $curated_content, $action_meta, $post['title'], $set_name);
-
+    // If error
+    if (isset($result['error']) && $result['error'] === true) {
+      $error_message = 'Node creation exception error';
+      if (isset($result['errorMessage']) && $result['errorMessage'] != '') {
+        $error_message = $result['errorMessage'];
+      }
+      return array( 'error' => true, 'errorMessage' => $error_message );
+    }
+    // Published successfully
     $returnInfo = array( 'error' => false, 'successMessage' => 'Post was ' . $result['status'] . '.', 'publishedId' => $result['nid']);
     return $returnInfo;
 	}
@@ -87,34 +93,44 @@ class Publishthis_Publish {
 	 * @param unknown $arrPostCategoryNames Category
 	 */
 	private function _update_content($nid, $curated_content, $content_features, $post_title, $set_name) {
+    try {
+      $node = !empty($nid) ? node_load($nid) : new stdClass();
+      $node->type = $content_features['pta_content_type'];
+      node_object_prepare($node);
 
-	  $node = !empty($nid) ? node_load($nid) : new stdClass();
-    $node->type = $content_features['pta_content_type'];
-    node_object_prepare($node);
+      $node->uid = 1;
+      $node->status = 1;
+      $node->language = LANGUAGE_NONE;
+      $node->is_new = empty($nid) ? TRUE : FALSE;
 
-    $node->uid = 1;
-    $node->status = 1;
-    $node->language = LANGUAGE_NONE;
-    $node->is_new = empty($nid) ? TRUE : FALSE;
+      $node->body[$node->language][0]['value'] = $curated_content;
+      $node->body[$node->language][0]['format'] = 'full_html';
+      $node->body[$node->language][0]['summary'] = $this->_build_node_summary($curated_content);
 
-    $node->body[$node->language][0]['value']   = $curated_content;
-    $node->body[$node->language][0]['format'] = 'full_html';
-    $node->body[$node->language][0]['summary'] = $this->_build_node_summary($curated_content);
+      $node->title = !empty($post_title) ? $post_title : NODE_NO_TITLE;
 
-    $node->title = !empty( $post_title ) ? $post_title : NODE_NO_TITLE;
+      $node = node_submit($node);
+      node_save($node);
 
-    $node = node_submit($node);
-    node_save($node);
+      // Set info about post
+      if (empty($nid) || ($nid <= 0)) {
+        $this->_set_docid($node->nid, $set_name, $set_name);
+      }
 
-    // Set info about post
-    if(empty($nid) || ($nid <= 0)) {
-      $this->_set_docid( $node->nid, $set_name, $set_name);
+      // Set current update date
+      $this->_set_curatedate_by_nid($node->nid, time());
+
+      $status = empty($nid) ? 'inserted' : 'updated';
     }
-
-    // Set current update date
-    $this->_set_curatedate_by_nid($node->nid, time());
-
-    $status = empty($nid) ? 'inserted' : 'updated';
+    catch( Exception $ex ) {
+      $message = array(
+        'message' => 'Node createion',
+        'status' => 'error',
+        'details' => $ex->getMessage()
+      );
+      $this->obj_api->_log_message( $message, "1" );
+      return array( 'error' => true, 'errorMessage' => $ex->getMessage());
+    }
 
 		return  array('nid' => $node->nid, 'status' => $status);
 	}
