@@ -127,7 +127,7 @@ class Publishthis_Publish {
       }
       $node->uid = $uid;
       // Handle workbench moderation
-      if (isset($node->workbench_moderation)) {
+      if (!empty($nid) && isset($node->workbench_moderation)) {
         $node->workbench_moderation['updating_live_revision'] = 1;
       }
       $node->status = $content_features['pta_content_status'];

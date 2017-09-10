@@ -38,8 +38,8 @@ function publishthis_publishingactions() {
 
   $rows = array();
   foreach ($result as $row) {
-	  $title = l($row->title, 'admin/config/system/publishthis/publishing-editactions/' . $row->id, array('attributes' => array('title' => t('Edit Actions'))));
-	  $edit   = l(t('Edit'), 'admin/config/system/publishthis/publishing-editactions/' . $row->id, array('attributes' => array('title' => t('Edit Actions'))));
+	  $title = l($row->title, 'admin/config/publishthis/publishing-editactions/' . $row->id, array('attributes' => array('title' => t('Edit Actions'))));
+	  $edit   = l(t('Edit'), 'admin/config/publishthis/publishing-editactions/' . $row->id, array('attributes' => array('title' => t('Edit Actions'))));
 	  $delete = l(t('Delete'), 'publishthis/publishing-actions/delete/' . $row->id, array('attributes' => array("onClick" => "return confirm( '" . t('Are you sure to delete this record?') . "' );")));
 	  $action = $edit . ' | ' . $delete;
 	  $rows[] = array(
@@ -52,7 +52,7 @@ function publishthis_publishingactions() {
   $output .= '<div class="wrap">
           <h2><img src="/' . drupal_get_path('module', 'publishthis') . '/assets/img/ico-32x32.png" /> <span style="line-height:33px;vertical-align:top;">Publishing Actions</span></h2>
         </div>';
-  $output .= '<ul class="action-links"><li>' . l(t('Add Publishing Action'), 'admin/config/system/publishthis/publishing-addactions') . '</li></ul>';
+  $output .= '<ul class="action-links"><li>' . l(t('Add Publishing Action'), 'admin/config/publishthis/publishing-addactions') . '</li></ul>';
   $output .= theme('table', array('header' => $header, 'rows' => $rows));
   $output .= theme('pager');
 
@@ -124,7 +124,7 @@ function publishthis_addnew_publishingactions($form, &$form_state) {
   );
 
   $form['pta_header_sublink'] = array(
-	  '#markup' => '<ul class="action-links"><li>' . l('Publishing Actions', 'admin/config/system/publishthis/publishing-actions') . '</li></ul>'
+	  '#markup' => '<ul class="action-links"><li>' . l('Publishing Actions', 'admin/config/publishthis/publishing-actions') . '</li></ul>'
   );
 
   $form['pta_action_title'] = array(
@@ -357,7 +357,7 @@ function publishthis_addnew_publishingactions_submit($form, &$form_state) {
 	  ->execute();
 
 	drupal_set_message(t('Publishing Action changes update successfully.'));
-    drupal_goto('admin/config/system/publishthis/publishing-actions');
+    drupal_goto('admin/config/publishthis/publishing-actions');
   }
 
 }
@@ -444,7 +444,7 @@ function edit_publishthis_publishing_actions_submit($form, &$form_state) {
 	    ->execute();
 
 	  drupal_set_message(t('Publishing Action changes update successfully.'));
-	  drupal_goto('admin/config/system/publishthis/publishing-actions');
+	  drupal_goto('admin/config/publishthis/publishing-actions');
   }
 }
 
@@ -463,7 +463,7 @@ function delete_publishthis_publishing_actions() {
 	    ->condition('id', $action_id)
 	    ->execute();
 	  drupal_set_message('One record has been deleted successfully.');
-	  drupal_goto("admin/config/system/publishthis/publishing-actions");
+	  drupal_goto("admin/config/publishthis/publishing-actions");
   }
 
 }

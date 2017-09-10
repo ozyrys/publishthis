@@ -236,6 +236,6 @@ function publishthis_settings_submit($form, &$form_state) {
 	  // Set varaible name, value pair
 	  $pt_settings_value = variable_set('pt_settings', $setting_formValue);
 	  drupal_set_message(t('The publishthis settings saved'));
-	  drupal_goto('admin/config/system/publishthis');
+	  drupal_goto('admin/config/publishthis');
   }
 }

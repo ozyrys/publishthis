@@ -157,7 +157,7 @@ function publishthis_log_messages_form_submit($form, &$form_state) {
         drupal_set_message( t("Selected messages have been deleted successfully.") );
       }
      
-      drupal_goto("admin/config/system/publishthis/log-messages");      
+      drupal_goto("admin/config/publishthis/log-messages");
     
     }
     
@@ -177,7 +177,7 @@ function publishthis_log_messages_delete() {
     
     $delete =db_delete('watchdog') ->condition('wid', $wid) ->execute();      
     drupal_set_message('One record has been deleted successfully.');
-    drupal_goto("admin/config/system/publishthis/log-messages");
+    drupal_goto("admin/config/publishthis/log-messages");
     
   }
   
