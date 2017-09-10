@@ -211,7 +211,7 @@ function publishthis_addnew_publishingactions($form, &$form_state) {
 	  '#title'         => t('Default Published Status'),
     '#attributes'    => array('class' => array('horizontal-list')),
 	  '#options'       => array('1' => t('Publish'), '0' => 'Not Publish'),
-	  '#default_value' => isset($pt_value['pta_content_status']) ? $pt_value['pta_content_status'] : '0',
+	  '#default_value' => isset($pt_value['pta_content_status']) ? $pt_value['pta_content_status'] : '1',
 	  '#description'   => t(''),
   );
 
@@ -273,15 +273,6 @@ function publishthis_addnew_publishingactions($form, &$form_state) {
     '#type'          => 'textfield',
     '#size'          => 5,
     '#default_value' => !empty($pt_value) ? $pt_value['pta_image_up_to_maxwidth'] : 0,
-  );
-
-  $form['pta_override_edits'] = array(
-    '#type'          => 'radios',
-    '#title'         => t('Default Published Status'),
-    '#attributes'    => array('class' => array('horizontal-list')),
-    '#options'       => array('0' => t('No'), '1' => 'Yes'),
-    '#default_value' => isset($pt_value['pta_override_edits']) ? $pt_value['pta_override_edits'] : '0',
-    '#description'   => t(''),
   );
 
   $form['pta_override_edits'] = array(
