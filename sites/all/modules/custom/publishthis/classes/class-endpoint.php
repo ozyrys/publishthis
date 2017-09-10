@@ -53,8 +53,7 @@ class Publishthis_Endpoint {
   /**
    * Returns json response with succeess status
    */
-  function sendSuccess($message) {
-	  $obj = NULL;
+  function sendSuccess($obj = NULL) {
 
 	  $obj->success      = TRUE;
 	  $obj->errorMessage = NULL;
@@ -66,8 +65,33 @@ class Publishthis_Endpoint {
   * Send object in JSON format
   */
 	private function sendJSON($obj) {
-	  header('Content-Type: application/json');
-	  echo json_encode($obj);
+		$response = json_encode( $obj );
+		$message = array  (
+			'message' => 'Endpoint Response',
+			'status'  => 'info',
+			'details' => $response
+		);
+		$this->obj_api->_log_message($message, "1");
+
+		/* we have to set the header to json. On some clients, they may have theme code that has all
+		  ready submitted the headers. if they did, then we can not use the endpoint, they would need
+		  to see an error occur and and work with our cs team to get things fixed.
+		  outputting in our debug area where the culprit is will be helpful though
+		 */
+		$ptfilename = new stdClass();
+		$ptlinenum = new stdClass();
+		if (!headers_sent($ptfilename, $ptlinenum)) {
+			header( 'Content-Type: application/json' );
+		} else {
+			$message = array  (
+				'message' => 'Headers all ready sent.',
+				'status'  => 'error',
+				'details' => 'Headers are all ready sent in file:' . $ptfilename . ' at line num:' .$ptlinenum . '.'
+			);
+			$this->obj_api->_log_message($message, "1");
+		}
+		echo $response;
+		exit();
   }
 
   /**
@@ -113,7 +137,7 @@ class Publishthis_Endpoint {
 	  );
 	  $this->obj_api->_log_message($message, "2");
 
-	  $this->sendSuccess("");
+	  $this->sendSuccess();
   }
 
   /**
@@ -139,9 +163,17 @@ class Publishthis_Endpoint {
 	  try {
 	    $result = $this->obj_publish->publish_specific_post($postId, $nid);
 			// Handle publishing errors and send back the message
-			if ($result !== true) {
-				$this->sendFailure($result);
+			if (empty($result)) {
+				$this->sendFailure('Post #'.$postId.' was not published.');
 				return;
+			}
+			elseif (isset($result['error']) && $result['error'] === true){
+				if (isset($result['errorMessage']) && $result['errorMessage'] != '') {
+					$this->sendFailure($result['errorMessage']);
+				}
+				else {
+					$this->sendFailure('Post #'.$postId.' was not published.');
+				}
 			}
 	  } catch (Exception $ex) {
 	    //looks like there was an internal error in publish, we will need to send a failure.
@@ -150,7 +182,17 @@ class Publishthis_Endpoint {
 	    return;
 	  }
 
-	  $this->sendSuccess("published");
+		$res = new stdClass();
+		if (!empty($result['publishedId'])) {
+			// Drupal base url
+			global $base_url;
+			// Prepare additional info to reply to publishThis
+      $res->publishedId = $result['publishedId'];
+			$res->publishedUrl = $base_url.'/'.drupal_get_path_alias('node/'.$result['publishedId']);
+			$res->previewUrl = $res->draftUrl = $base_url.'/node/'.$result['publishedId'];
+		}
+
+	  $this->sendSuccess($res);
 	  return;
   }
 

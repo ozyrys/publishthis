@@ -80,11 +80,11 @@ class Publishthis_Publish {
 	 *   Save import content as a node
 	 *
 	 * @param unknown $nid              	Node ID
-	 * @param number  $post_id              The PublishThis Post Id
-	 * @param unknown $docid                docid linked to this post
+   * @param unknown $curated_content      Imported content
+   * @param unknown $content_features     Additional content info
+	 * @param number  $post_title              The PublishThis Post title
+	 * @param unknown $set_name                docid linked to this post
 	 * @param unknown $arrPostCategoryNames Category
-	 * @param unknown $curated_content      Imported content
-	 * @param unknown $content_features     Additional content info
 	 */
 	private function _update_content($nid, $curated_content, $content_features, $post_title, $set_name) {
 
@@ -243,7 +243,7 @@ class Publishthis_Publish {
 			$post = $this->obj_api->get_basic_post_data($postId);
       // If empty post then return error message
       if (empty($post)) {
-        return 'Empty post object returned from publishThis';
+        return array( 'error' => true, 'errorMessage' => 'Empty post object returned from publishThis');
       }
 			//get all publishing actions that match up with this feed template (usually 1)
 			$arrPublishingActions = $this->get_publishing_actions();
@@ -258,7 +258,7 @@ class Publishthis_Publish {
 					try{
 						$result = $this->publish_post_with_publishing_action($post, $action_meta, $nid);
             if (isset($result['error']) && $result['error'] === true) {
-              return isset($result['errorMessage']) ? $result['errorMessage'] : 'Something went wrong in publish_post_with_publishing_action function of Drupal publishThis module';
+              return $result;
             }
             $published = true;
 					}catch( Exception $ex ) {
@@ -273,7 +273,7 @@ class Publishthis_Publish {
 			}
 			// If not published, means that publishing action was not found.
 			if (!$published) {
-			  return 'Publishing action not found on Drupal instance.';
+			  return array( 'error' => true, 'errorMessage' => 'Publishing action not found on Drupal instance.');
       }
 		}catch( Exception $ex ) {
 			//some other occurred while we tried publish, not sure what
@@ -283,9 +283,16 @@ class Publishthis_Publish {
 				'status' => 'error',
 				'details' => 'A general exception happened during the publishing of specific post. Post Id not published:' . $post['postId'] . ' specific message:' . $ex->getMessage() );
 			$this->obj_api->_log_message( $message, "1" );
-      return 'A general exception happened during the publishing of specific post. Post Id not published:' . $post['postId'];
+      return array( 'error' => true, 'errorMessage' => 'A general exception happened during the publishing of specific post. Post Id not published:' . $post['postId']);
 		}
-		return true;
+		// Success
+		if (!empty($result)) {
+      return $result;
+    }
+    // Failed
+    else {
+      return array( 'error' => true, 'errorMessage' => 'Post #'.$post['postId'].' was not published.');
+    }
 	}
 
 }
