@@ -93,13 +93,25 @@ class Publishthis_Publish {
 	 * @param unknown $arrPostCategoryNames Category
 	 */
 	private function _update_content($nid, $curated_content, $content_features, $post_title, $set_name) {
+	  watchdog('hlp', '<pre>'.print_r($content_features,1).'</pre>');
     try {
       $node = !empty($nid) ? node_load($nid) : new stdClass();
       $node->type = $content_features['pta_content_type'];
       node_object_prepare($node);
 
-      $node->uid = 1;
-      $node->status = 1;
+      $uid = 1;
+      // Check if user exists - otherwise apply uid 1
+      $user_name = db_query("SELECT name FROM {users} WHERE uid = :uid;", array(':uid' => $content_features['pta_publish_author']))->fetchField();
+      if (!empty($user_name)){
+        $uid = $content_features['pta_publish_author'];
+        $node->name = $user_name;
+      }
+      $node->uid = $uid;
+      // Handle workbench moderation
+      if (isset($node->workbench_moderation)) {
+        $node->workbench_moderation['updating_live_revision'] = 1;
+      }
+      $node->status = $content_features['pta_content_status'];
       $node->language = LANGUAGE_NONE;
       $node->is_new = empty($nid) ? TRUE : FALSE;
 
