@@ -89,7 +89,7 @@ class Publishthis_Publish {
 	private function _update_content($nid, $curated_content, $content_features, $post_title, $set_name) {
 
 	  $node = !empty($nid) ? node_load($nid) : new stdClass();
-    $node->type = 'page';
+    $node->type = $content_features['pta_content_type'];
     node_object_prepare($node);
 
     $node->uid = 1;
@@ -281,8 +281,13 @@ class Publishthis_Publish {
 		try{
 			//to publish, we need our actual post object
 			$post = $this->obj_api->get_basic_post_data($postId);
+      // If empty post then return error message
+      if (empty($post)) {
+        return 'Empty post object returned from publishThis';
+      }
 			//get all publishing actions that match up with this feed template (usually 1)
 			$arrPublishingActions = $this->get_publishing_actions();
+      $published = false;
 			//loop the publishing actions and it will then publish content for that post
 			foreach ( $arrPublishingActions as $pubAction ) {
 				$actionId = $pubAction['id'];
@@ -292,6 +297,7 @@ class Publishthis_Publish {
 				if ( $post['publishTypeId'] == $action_meta['pta_pt_post_type'] ) {
 					try{
 						$this->publish_post_with_publishing_action($post, $action_meta, $nid);
+            $published = true;
 					}catch( Exception $ex ) {
 						//we capture individual errors and report them,
 						$message = array(
@@ -302,6 +308,10 @@ class Publishthis_Publish {
 					}
 				}
 			}
+			// If not published, means that publishing action was not found.
+			if (!$published) {
+			  return 'Publishing action not found on Drupal instance.';
+      }
 		}catch( Exception $ex ) {
 			//some other occurred while we tried publish, not sure what
 			//capture this and log it and then throw it as well as what info we have
@@ -310,7 +320,9 @@ class Publishthis_Publish {
 				'status' => 'error',
 				'details' => 'A general exception happened during the publishing of specific post. Post Id not published:' . $post['postId'] . ' specific message:' . $ex->getMessage() );
 			$this->obj_api->_log_message( $message, "1" );
+      return 'A general exception happened during the publishing of specific post. Post Id not published:' . $post['postId'];
 		}
+		return true;
 	}
 
 }

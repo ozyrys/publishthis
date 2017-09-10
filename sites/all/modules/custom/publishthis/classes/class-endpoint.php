@@ -137,7 +137,12 @@ class Publishthis_Endpoint {
 
 	  //ok, now go try and publish the post passed in
 	  try {
-	    $this->obj_publish->publish_specific_post($postId, $nid);
+	    $result = $this->obj_publish->publish_specific_post($postId, $nid);
+			// Handle publishing errors and send back the message
+			if ($result !== true) {
+				$this->sendFailure($result);
+				return;
+			}
 	  } catch (Exception $ex) {
 	    //looks like there was an internal error in publish, we will need to send a failure.
 	    //no need to log here, as our internal methods have all ready logged it
