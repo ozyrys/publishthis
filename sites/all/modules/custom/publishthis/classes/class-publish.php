@@ -111,7 +111,13 @@ class Publishthis_Publish {
       $node->type = $content_features['pta_content_type'];
       node_object_prepare($node);
 
+      // Author
       $uid = 1;
+      // If author is set in post then override default one from
+      // Publishing Action
+      if (!empty($post['authors'][0]->id)) {
+        $content_features['pta_publish_author'] = $post['authors'][0]->id;
+      }
       // Check if user exists - otherwise apply uid 1
       $user_name = db_query("SELECT name FROM {users} WHERE uid = :uid;", array(':uid' => $content_features['pta_publish_author']))->fetchField();
       if (!empty($user_name)){
