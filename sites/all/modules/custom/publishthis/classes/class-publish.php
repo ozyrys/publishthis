@@ -171,8 +171,8 @@ class Publishthis_Publish {
       $node->{$categry_field_name}[$node->language]  = array();
       if(!empty($post['categories']) && count($post['categories'])){
         foreach($post['categories'] as $cat){
-          if (!empty($cat->taxonomyId) && taxonomy_term_load($cat->taxonomyId)) {
-            $node->{$categry_field_name}[$node->language][]  = array('tid' => $cat->taxonomyId);
+          if (!empty($cat->id) && taxonomy_term_load($cat->id)) {
+            $node->{$categry_field_name}[$node->language][]  = array('tid' => $cat->id);
           }
         }
       }
