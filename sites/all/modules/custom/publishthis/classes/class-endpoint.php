@@ -196,17 +196,6 @@ class Publishthis_Endpoint {
 	  return;
   }
 
-  private function array_values_recursive($arr) {
-	  $arr = array_values($arr);
-	  foreach ($arr as $key => $val) {
-	    if (array_values($val['subcategories']) !== $val['subcategories']) {
-		    $arr[$key]['subcategories'] = $this->array_values_recursive($val['subcategories']);
-	    }
-	  }
-
-	  return $arr;
-  }
-
   private function actionGetAuthors() {
 	  $authors = array();
 	  $obj     = new stdClass();
@@ -231,6 +220,23 @@ class Publishthis_Endpoint {
 	  $this->sendJSON($obj);
   }
 
+	function get_subcategories_recursively($parent_id, $vid) {
+		$children = taxonomy_get_children($parent_id, $vid);
+		$subcategories = array();
+		if(count($children)) {
+			# It has children, let's get them.
+			foreach ($children as $child_term){
+				# Add the child to the list of children, and get its subchildren
+				$subcategories[] = array(
+					'id' => $child_term->tid,
+					'name' => $child_term->name,
+					'subcategories' => $this->get_subcategories_recursively($child_term->tid, $vid)
+				);
+			}
+		}
+		return $subcategories;
+	}
+
   private function actionGetCategories() {
 	  global $pt_settings_value;
 		$categories = array();
@@ -238,19 +244,20 @@ class Publishthis_Endpoint {
 			$taxonomies = taxonomy_vocabulary_get_names();
 			foreach ($taxonomies as $taxonomie) {
 				if ($taxonomie->machine_name == $pt_settings_value['taxonomy_group']) {
-					$tax_id = $taxonomie->vid;
 					if (!$pt_settings_value['taxonomy_group'] !== 'default') {
-						$terms = taxonomy_get_tree($tax_id);
-						$tax_name = taxonomy_vocabulary_load($tax_id);
+						$terms = taxonomy_get_tree($taxonomie->vid);
+						$tax_name = taxonomy_vocabulary_load($taxonomie->vid);
 						foreach ($terms as $term) {
-							$category = array(
-								'id' => intval($term->tid),
-								'name' => $term->name,
-								'taxonomyId' => intval($term->tid),
-								'taxonomyName' => $tax_name->machine_name,
-								'subcategories' => array()
-							);
-							$categories[$term->tid] = $category;
+							if (isset($term->parents[0]) && $term->parents[0] == 0) {
+								$category = array(
+									'id' => intval($term->tid),
+									'name' => $term->name,
+									'taxonomyId' => intval($term->tid),
+									'taxonomyName' => $tax_name->machine_name,
+									'subcategories' => $this->get_subcategories_recursively($term->tid, $taxonomie->vid)
+								);
+								$categories[] = $category;
+							}
 						}
 					}
 					break;
@@ -260,7 +267,7 @@ class Publishthis_Endpoint {
 	  $obj               = new stdClass();
 	  $obj->success      = TRUE;
 	  $obj->errorMessage = NULL;
-	  $obj->categories   = $this->array_values_recursive($categories);
+	  $obj->categories   = $categories;
 	  $this->sendJSON($obj);
   }
 
