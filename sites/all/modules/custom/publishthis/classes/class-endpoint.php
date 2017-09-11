@@ -214,7 +214,7 @@ class Publishthis_Endpoint {
 	  $users  = entity_load('user');
 	  $emails = '';
 	  foreach ($users as $user) {
-	    if (array_key_exists(3, $user->roles)) {
+	    if (in_array('authenticated user', $user->roles)) {
 	  	  if (strlen($emails) > 0) {
 	  	    $emails .= ' ' . $user->mail;
 	  	  }
