@@ -147,8 +147,7 @@ class Publishthis_Publish {
         unset( $node->field_image[$node->language][0] );
       }
 
-      // Save image
-      $node = node_submit($node);
+      // Save node
       node_save($node);
 
       // Set info about post
