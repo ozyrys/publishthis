@@ -315,6 +315,20 @@ function publishthis_addnew_publishingactions($form, &$form_state) {
  * @desc Submit form value
  */
 function publishthis_addnew_publishingactions_validate($form, &$form_state) {
+  // You can have only one Publishing Action per publishThis content type
+  if (isset($form_state['values']['pta_pt_post_type'])) {
+    $publsihing_actions = Publishthis_Publish::get_publishing_actions();
+    if (count($publsihing_actions)) {
+      foreach ($publsihing_actions as $pa_id => $p_action) {
+        $p_action = unserialize($p_action['value']);
+        if (isset($p_action['pta_pt_post_type']) && $p_action['pta_pt_post_type'] == $form_state['values']['pta_pt_post_type']) {
+          form_set_error('pta_pt_post_type', t('One <a href="/admin/config/publishthis/publishing-editactions/' . $pa_id . '">Publish Action already</a> exists for this "PublishThis Post Type". You can have only one Publishing Action per "PublishThis Post Type".'));
+          break;
+        }
+      }
+    }
+  }
+  // Validate url
   if (isset($form_state['values']['pta_post_template_url']) && $form_state['values']['pta_post_template_url'] != '' && !valid_url($form_state['values']['pta_post_template_url'], true)) {
     form_set_error('pta_post_template_url', t('Invalid url'));
   }
@@ -407,6 +421,20 @@ function edit_publishthis_publishing_actions($form, $form_state) {
  * @desc Submit form value
  */
 function edit_publishthis_publishing_actions_validate($form, &$form_state) {
+  // You can have only one Publishing Action per publishThis content type
+  if (isset($form_state['values']['pta_pt_post_type'])) {
+    $publsihing_actions = Publishthis_Publish::get_publishing_actions();
+    if (count($publsihing_actions)) {
+      foreach ($publsihing_actions as $pa_id => $p_action) {
+        $p_action = unserialize($p_action['value']);
+        if (isset($p_action['pta_pt_post_type']) && $p_action['pta_pt_post_type'] == $form_state['values']['pta_pt_post_type'] && $pa_id != $form_state['values']['editId']) {
+          form_set_error('pta_pt_post_type', t('One <a href="/admin/config/publishthis/publishing-editactions/' . $pa_id . '">Publish Action already</a> exists for this "PublishThis Post Type". You can have only one Publishing Action per "PublishThis Post Type".'));
+          break;
+        }
+      }
+    }
+  }
+  // Validate url
   if (isset($form_state['values']['pta_post_template_url']) && $form_state['values']['pta_post_template_url'] != '' && !valid_url($form_state['values']['pta_post_template_url'], true)) {
     form_set_error('pta_post_template_url', t('Invalid url'));
   }
