@@ -378,10 +378,9 @@ function _get_template_options($api_template = array()) {
   if (!empty($api_template)) {
 	  // API feed template result
 	  foreach ($api_template as $tempval) {
-	    // if template apply to post and there is no integration restrictions
-      // or restricted to drupal then take it
-      $post_template_ids = array(3,1,5,0,4);
-      if ((in_array($tempval->id, $post_template_ids)) && (!isset($tempval->integrations) || (isset($tempval->integrations) && in_array('drupal',$tempval->integrations)))) {
+	    // if there is no integration restrictions or restricted to drupal
+      // then take it
+      if (!isset($tempval->integrations) || (isset($tempval->integrations) && in_array('drupal',$tempval->integrations))) {
         $template[$tempval->id] = $tempval->templateName;
       }
 	  }
