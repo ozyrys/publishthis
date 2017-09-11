@@ -50,7 +50,7 @@ class Publishthis_Publish {
 
     //don't update existed posts if synchronization is turned off
     if ( $nid && ! $action_meta['pta_override_edits'] ) {
-      return array( 'error' => true, 'errorMessage' => 'Updates are turned off, so, skipping this post. Enable "Allow PublishThis to Override Edits" on Publisg action.');
+      return array( 'error' => true, 'errorMessage' => 'No publishing event happened, because the CMS is set to ignore any updates from PublishThis.');
     }
 
     try{
