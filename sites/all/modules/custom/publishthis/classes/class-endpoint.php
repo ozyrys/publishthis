@@ -239,20 +239,21 @@ class Publishthis_Endpoint {
 			foreach ($taxonomies as $taxonomie) {
 				if ($taxonomie->machine_name == $pt_settings_value['taxonomy_group']) {
 					$tax_id = $taxonomie->vid;
-				}
-				if (!$pt_settings_value['taxonomy_group'] !== 'default') {
-					$terms    = taxonomy_get_tree($tax_id);
-					$tax_name = taxonomy_vocabulary_load($tax_id);
-					foreach ($terms as $term) {
-						$category               = array(
-							'id'            => intval($term->tid),
-							'name'          => $term->name,
-							'taxonomyId'    => intval($term->tid),
-							'taxonomyName'  => $tax_name->machine_name,
-							'subcategories' => array()
-						);
-						$categories[$term->tid] = $category;
+					if (!$pt_settings_value['taxonomy_group'] !== 'default') {
+						$terms = taxonomy_get_tree($tax_id);
+						$tax_name = taxonomy_vocabulary_load($tax_id);
+						foreach ($terms as $term) {
+							$category = array(
+								'id' => intval($term->tid),
+								'name' => $term->name,
+								'taxonomyId' => intval($term->tid),
+								'taxonomyName' => $tax_name->machine_name,
+								'subcategories' => array()
+							);
+							$categories[$term->tid] = $category;
+						}
 					}
+					break;
 				}
 			}
 		}
