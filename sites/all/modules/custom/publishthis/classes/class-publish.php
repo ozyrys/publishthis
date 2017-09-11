@@ -119,11 +119,24 @@ class Publishthis_Publish {
         $node->name = $user_name;
       }
       $node->uid = $uid;
-      // Handle workbench moderation
-      if (!empty($nid) && isset($node->workbench_moderation)) {
-        $node->workbench_moderation['updating_live_revision'] = 1;
-      }
       $node->status = $content_features['pta_content_status'];
+      // Handle workbench moderation
+      if (module_exists('workbench_moderation')) {
+        $moderated_content_types = workbench_moderation_moderate_node_types();
+        if (count($moderated_content_types) && in_array($node->type,$moderated_content_types)) {
+          if (!empty($nid) && isset($node->workbench_moderation)) {
+            $node->workbench_moderation['updating_live_revision'] = 1;
+          }
+          $node->revision = 1;
+          if ($node->status > 0) {
+            $node->workbench_moderation_state_new = workbench_moderation_state_published();
+          }
+          else {
+            $node->workbench_moderation_state_new = workbench_moderation_state_none();
+          }
+        }
+      }
+
       $node->language = LANGUAGE_NONE;
       $node->is_new = empty($nid) ? TRUE : FALSE;
 
@@ -148,6 +161,7 @@ class Publishthis_Publish {
       }
 
       // Save node
+      $node = node_submit($node);
       node_save($node);
 
       // Set info about post
