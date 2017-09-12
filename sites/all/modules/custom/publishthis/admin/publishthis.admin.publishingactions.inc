@@ -158,7 +158,7 @@ function publishthis_addnew_publishingactions($form, &$form_state) {
   }
   $form['pta_publish_author'] = array(
 	  '#type'          => 'select',
-	  '#title'         => t('Publish Author'),
+	  '#title'         => t('Author to Publish With'),
 	  '#options'       => $authors,
 	  '#default_value' => isset($pt_value['pta_publish_author']) ? $pt_value['pta_publish_author'] : '',
   );
@@ -210,12 +210,12 @@ function publishthis_addnew_publishingactions($form, &$form_state) {
 	  '#type'          => 'radios',
 	  '#title'         => t('Default Published Status'),
     '#attributes'    => array('class' => array('horizontal-list')),
-	  '#options'       => array('1' => t('Publish'), '0' => 'Not Publish'),
+	  '#options'       => array('1' => t('Publish immediately'), '0' => t('Save as Draft')),
 	  '#default_value' => isset($pt_value['pta_content_status']) ? $pt_value['pta_content_status'] : '1',
 	  '#description'   => t(''),
   );
 
-  $def_featured_image_option = t('Download and save content image as the "Featured Image"');
+  $def_featured_image_option = t('Download and save Featured Section image as the Drupal "Featured Image"');
   $form['pta_featured_image'] = array(
 	  '#type'          => 'checkboxes',
 	  '#title'         => t('Featured Image'),
