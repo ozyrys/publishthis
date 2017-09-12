@@ -50,6 +50,19 @@ function publishthis_preprocess_html(&$variables) {
   }
 }
 
+function _publishthis_replace_unhandled_characters($string) {
+  $special_charachters = array('“', '”', '©');
+  $replacements = array('"', '"', '&copy;');
+  $string = str_replace($special_charachters, $replacements, $string);
+  $connection = Database::getConnection();
+  $utf8mb4_active = $connection->utf8mb4IsActive();
+  $utf8mb4_supported = $connection->utf8mb4IsSupported();
+  if (!$utf8mb4_active || !$utf8mb4_supported) {
+    $string = utf8_encode($string);
+  }
+  return $string;
+}
+
 /**
  * Get tid from term name
  *

@@ -154,7 +154,7 @@ class Publishthis_Publish {
         $curated_content = $arrHTMLItems[0];
       }
 
-      $node->body[$node->language][0]['value'] = $curated_content;
+      $node->body[$node->language][0]['value'] = _publishthis_replace_unhandled_characters($curated_content);
       $node->body[$node->language][0]['format'] = 'full_html';
       $node->body[$node->language][0]['summary'] = $this->_build_node_summary($arrHTMLItems);
 
@@ -264,7 +264,7 @@ class Publishthis_Publish {
 	 * @param string $text
 	 */
 	private function _build_node_summary( $content ) {
-    $summary = isset($content->summary) && strlen($content->summary)>0 ? $content->summary : '';
+    $summary = isset($content->summary) && strlen($content->summary)>0 ? _publishthis_replace_unhandled_characters($content->summary) : '';
     return text_summary('<p class="pt-excerpt">'.$summary. '</p>' );
 	} 
 
