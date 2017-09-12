@@ -129,7 +129,7 @@ class Publishthis_Publish {
       // Handle workbench moderation
       if (module_exists('workbench_moderation')) {
         // Don't proceed if moderation is not enabled on this content
-        if (!workbench_moderation_node_moderated($node)) {
+        if (workbench_moderation_node_moderated($node)) {
           if (!empty($nid) && isset($node->workbench_moderation)) {
             $node->workbench_moderation['updating_live_revision'] = 1;
             $node->workbench_moderation['current']->stamp = REQUEST_TIME;
