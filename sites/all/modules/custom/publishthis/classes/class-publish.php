@@ -106,7 +106,8 @@ class Publishthis_Publish {
 	 * @param unknown $arrPostCategoryNames Category ???
 	 */
 	private function _update_content($nid, $arrHTMLItems, $content_features, $post, $set_name) {
-    try {
+    global $pt_settings_value;
+	  try {
       $node = !empty($nid) ? node_load($nid) : new stdClass();
       $node->type = $content_features['pta_content_type'];
       node_object_prepare($node);
@@ -169,58 +170,60 @@ class Publishthis_Publish {
       }
 
       // Categories
-      $categry_field_name = 'pt_'. $node->type;
-      $node->{$categry_field_name}[$node->language]  = array();
-      if(!empty($post['categories']) && count($post['categories'])){
-        foreach($post['categories'] as $cat){
-          if (!empty($cat->id) && taxonomy_term_load($cat->id)) {
-            $node->{$categry_field_name}[$node->language][]  = array('tid' => $cat->id);
+      if (isset($pt_settings_value['taxonomy']['get_term']) && $pt_settings_value['taxonomy']['get_term'] !== 0) {
+        $categry_field_name = 'pt_' . $node->type;
+        $node->{$categry_field_name}[$node->language] = array();
+        if (!empty($post['categories']) && count($post['categories'])) {
+          foreach ($post['categories'] as $cat) {
+            if (!empty($cat->id) && taxonomy_term_load($cat->id)) {
+              $node->{$categry_field_name}[$node->language][] = array('tid' => $cat->id);
+            }
           }
         }
-      }
-      // Tags
-      if (isset($content_features['pta_add_tags']) && $content_features['pta_add_tags'] == 1) {
-        $node->field_tags[$node->language] = array();
-        // Check if vocabulary "tags" exists
-        $vocab = taxonomy_vocabulary_machine_name_load('tags');
-        if (!empty($vocab->vid) && !empty($vocab->machine_name)) {
-          if (!empty($post['tags']) && count($post['tags'])) {
-            foreach ($post['tags'] as $tag) {
-              // Process tag
-              switch ($tag->type) {
-                case 'keyword':
-                  $tag = $tag->text;
-                  break;
+        // Tags
+        if (isset($content_features['pta_add_tags']) && $content_features['pta_add_tags'] == 1) {
+          $node->field_tags[$node->language] = array();
+          // Check if vocabulary "tags" exists
+          $vocab = taxonomy_vocabulary_machine_name_load('tags');
+          if (!empty($vocab->vid) && !empty($vocab->machine_name)) {
+            if (!empty($post['tags']) && count($post['tags'])) {
+              foreach ($post['tags'] as $tag) {
+                // Process tag
+                switch ($tag->type) {
+                  case 'keyword':
+                    $tag = $tag->text;
+                    break;
 
-                case 'entity':
-                  $tag = $tag->text;
-                  break;
+                  case 'entity':
+                    $tag = $tag->text;
+                    break;
 
-                case 'topic':
-                  $tag = $tag->displayName . ' (' . $tag->topicLabel . ')';
-                  break;
+                  case 'topic':
+                    $tag = $tag->displayName . ' (' . $tag->topicLabel . ')';
+                    break;
 
-                case 'parentTopic':
-                  $tag = $tag->displayName . ' (' . $tag->topicLabel . ')';
-                  break;
+                  case 'parentTopic':
+                    $tag = $tag->displayName . ' (' . $tag->topicLabel . ')';
+                    break;
 
-                default:
-                  $tag = NULL;
-                  break;
-              }
-              // If tag already exists then apply, otherwise create taxonomy term and apply
-              if (!empty($tag)) {
-                $tid = _get_tid_from_term_name($tag, 'tags');
-                if (!empty($tid)) {
-                  $node->field_tags[$node->language][] = array('tid' => $tid);
+                  default:
+                    $tag = NULL;
+                    break;
                 }
-                else {
-                  $term = new stdClass();
-                  $term->vid = $vocab->vid;
-                  $term->name = $tag;
-                  taxonomy_term_save($term);
-                  if (!empty($term->tid)) {
-                    $node->field_tags[$node->language][] = array('tid' => $term->tid);
+                // If tag already exists then apply, otherwise create taxonomy term and apply
+                if (!empty($tag)) {
+                  $tid = _get_tid_from_term_name($tag, 'tags');
+                  if (!empty($tid)) {
+                    $node->field_tags[$node->language][] = array('tid' => $tid);
+                  }
+                  else {
+                    $term = new stdClass();
+                    $term->vid = $vocab->vid;
+                    $term->name = $tag;
+                    taxonomy_term_save($term);
+                    if (!empty($term->tid)) {
+                      $node->field_tags[$node->language][] = array('tid' => $term->tid);
+                    }
                   }
                 }
               }
