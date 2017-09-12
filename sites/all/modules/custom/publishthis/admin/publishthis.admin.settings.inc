@@ -33,17 +33,17 @@ function publishthis_settings($form, &$form_state) {
   }
   $form['pt_settings']['endpoint'] = array(
 	  '#type'          => 'textfield',
-	  '#default_value' => isset($pt_value['endpoint']) ? $pt_value['endpoint'] : $pt_endpoint,
+	  '#default_value' => isset($pt_value['endpoint']) ? $pt_value['endpoint'] : $base_url . '/endpoint/' . $pt_endpoint,
 	  '#required'      => TRUE,
 	  '#description'   => t(''),
-	  '#prefix'        => '<div class="form-item form-type-checkboxes">
+	  /*'#prefix'        => '<div class="form-item form-type-checkboxes">
 			  <label for="edit-cms-url">CMS URL</label>
 			<div id="edit-cms-url">
 			  <div class="form-item form-type-checkbox">' . $base_url . '/endpoint/' . $pt_endpoint . '
 			  </div>
 			</div>
 		  </div><div id="endpoint_input">',
-	  '#suffix'        => '</div>',
+	  '#suffix'        => '</div>',*/
   );
   $form['pt_settings']['taxonomy'] = array(
 	  '#type'          => 'checkboxes',

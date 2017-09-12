@@ -278,7 +278,7 @@ class Publishthis_Endpoint {
 	  global $pt_settings_value;
 
 		// Check if token from request matches Drupal token
-		if ($token != $pt_settings_value['endpoint']) {
+		if ($token != substr($pt_settings_value['endpoint'], strrpos($pt_settings_value['endpoint'], '/') + 1)) {
 			$message = array(
 				'message' => 'Verify Plugin Endpoint',
 				'status' => 'error',
