@@ -14,7 +14,7 @@ function publishthis_init() {
   if (isset($_GET['q'])) {
     $query_params = explode('/', $_GET['q']);
   }
-  if(count($query_params) == 2 && arg(0) == 'token') {
+  if(count($query_params) == 2 && arg(0) == 'endpoint') {
     _init_pt_endpoint(arg(1));
     exit;
   }
