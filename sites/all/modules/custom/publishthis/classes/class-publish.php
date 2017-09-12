@@ -128,10 +128,12 @@ class Publishthis_Publish {
       $node->status = $content_features['pta_content_status'];
       // Handle workbench moderation
       if (module_exists('workbench_moderation')) {
-        $moderated_content_types = workbench_moderation_moderate_node_types();
-        if (count($moderated_content_types) && in_array($node->type,$moderated_content_types)) {
+        // Don't proceed if moderation is not enabled on this content
+        if (!workbench_moderation_node_moderated($node)) {
           if (!empty($nid) && isset($node->workbench_moderation)) {
             $node->workbench_moderation['updating_live_revision'] = 1;
+            $node->workbench_moderation['current']->stamp = REQUEST_TIME;
+            $node->workbench_moderation['current']->timestamp = REQUEST_TIME;
           }
           $node->revision = 1;
           if ($node->status > 0) {
