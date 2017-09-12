@@ -386,7 +386,7 @@ class Publishthis_Publish {
 			$post = $this->obj_api->get_basic_post_data($postId);
       // If empty post then return error message
       if (empty($post)) {
-        return array( 'error' => true, 'errorMessage' => 'Empty post object returned from publishThis');
+        return array( 'error' => true, 'errorMessage' => 'That was either an error in calling the PublishThis api to get the published data, or there was no data in the Post. Please check your logs on your CMS');
       }
 			//get all publishing actions that match up with this feed template (usually 1)
 			$arrPublishingActions = $this->get_publishing_actions();
@@ -415,7 +415,7 @@ class Publishthis_Publish {
 			}
 			// If not published, means that publishing action was not found.
 			if (!$published) {
-			  return array( 'error' => true, 'errorMessage' => 'Publishing action not found on Drupal instance.');
+			  return array( 'error' => true, 'errorMessage' => 'There was no matching Publishing Action for this PublishThis Post Type found on your CMS. Please check your PublishThis settings on the CMS.');
       }
 		}catch( Exception $ex ) {
 			//some other occurred while we tried publish, not sure what
