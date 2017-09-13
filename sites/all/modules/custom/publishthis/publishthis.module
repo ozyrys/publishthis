@@ -55,8 +55,8 @@ function _publishthis_replace_unhandled_characters($string) {
   $utf8mb4_active = $connection->utf8mb4IsActive();
   $utf8mb4_supported = $connection->utf8mb4IsSupported();
   if (!$utf8mb4_active || !$utf8mb4_supported) {
-    $special_charachters = array('“', '”', '’', '‘', '©');
-    $replacements = array('"', '"', '\'', '\'', '&copy;');
+    $special_charachters = array('“', '”', '’', '‘', '–', '©');
+    $replacements = array('"', '"', '\'', '\'', '-', '&copy;');
     $string = str_replace($special_charachters, $replacements, $string);
     $string = utf8_encode($string);
   }
