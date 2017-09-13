@@ -91,7 +91,7 @@ class Publishthis_Publish {
       return array( 'error' => true, 'errorMessage' => $error_message );
     }
     // Published successfully
-    $returnInfo = array( 'error' => false, 'successMessage' => 'Post was ' . $result['status'] . '.', 'publishedId' => $result['nid']);
+    $returnInfo = array( 'error' => false, 'successMessage' => 'Post was ' . $result['status'] . '.', 'publishedId' => $result['nid'], 'node_status' => $result['node_status']);
     return $returnInfo;
 	}
 
@@ -255,7 +255,7 @@ class Publishthis_Publish {
       return array( 'error' => true, 'errorMessage' => $ex->getMessage());
     }
 
-		return  array('nid' => $node->nid, 'status' => $status);
+		return  array('nid' => $node->nid, 'status' => $status, 'node_status' => $node->status);
 	}
 
 	/**

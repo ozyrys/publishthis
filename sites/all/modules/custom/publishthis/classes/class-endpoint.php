@@ -188,7 +188,9 @@ class Publishthis_Endpoint {
 			global $base_url;
 			// Prepare additional info to reply to publishThis
       $res->publishedId = $result['publishedId'];
-			$res->publishedUrl = $base_url.'/'.drupal_get_path_alias('node/'.$result['publishedId']);
+			if (!empty($result['node_status']) && $result['node_status'] == 1) {
+				$res->publishedUrl = $base_url . '/' . drupal_get_path_alias('node/' . $result['publishedId']);
+			}
 			$res->previewUrl = $res->draftUrl = $base_url.'/node/'.$result['publishedId'].'/edit';
 		}
 
