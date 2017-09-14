@@ -5,16 +5,18 @@
  */
 function publishthis_init() {
   // TODO - optimize this - it is not needed to load on every page request
+  // refactoring - replace global $pt_settings_value with
+  // $pt_settings_value = publishthis_settings();
   global $pt_settings_value;
   // Include common settings file
   include drupal_get_path('module', 'publishthis') . '/publishthis-settings.php';
 
-  // TODO - move twitter and css to hook_node_view if node comes from publishThis
+  // TODO - move twitter and css to hook_node_view
+  // or hook_page_alter() if node comes from publishThis
   // publishThis styles
   if(!empty($pt_settings_value['styling']['enable_styling'])){
     drupal_add_css(drupal_get_path('module', 'publishthis') . '/assets/css/publishthis.general.css', array('group' => CSS_DEFAULT, 'every_page' => TRUE));
   }
-
   //Add Tweeter widget js
   drupal_add_js( 'http://platform.twitter.com/widgets.js' );
 }
