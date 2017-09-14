@@ -18,7 +18,7 @@ class Publishthis_Publish {
 	/**
 	 * returns all publishing actions that are published
 	 */
-	public function get_publishing_actions() {
+	public static function get_publishing_actions() {
 		// Find records
 		$actions = array();
 		$result = db_select('pt_publishactions', 'pb')
