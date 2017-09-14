@@ -9,21 +9,12 @@ function publishthis_init() {
   // Include common settings file
   include drupal_get_path('module', 'publishthis') . '/publishthis-settings.php';
 
-  // Check if this is pubishThis request and execute method
-  $query_params = array();
-  if (isset($_GET['q'])) {
-    $query_params = explode('/', $_GET['q']);
-  }
-  if(count($query_params) == 2 && arg(0) == 'endpoint') {
-    _init_pt_endpoint(arg(1));
-    exit;
-  }
-
   // TODO - move twitter and css to hook_node_view if node comes from publishThis
   // publishThis styles
   if(!empty($pt_settings_value['styling']['enable_styling'])){
     drupal_add_css(drupal_get_path('module', 'publishthis') . '/assets/css/publishthis.general.css', array('group' => CSS_DEFAULT, 'every_page' => TRUE));
   }
+
   //Add Tweeter widget js
   drupal_add_js( 'http://platform.twitter.com/widgets.js' );
 }
@@ -195,7 +186,20 @@ function publishthis_menu() {
     'file' => 'publishthis.admin.logmessages.inc',
     'file path' => drupal_get_path('module', 'publishthis') . '/admin',
   );
-  
+
+  // Get endpoint form settings
+  $pt_value = unserialize(variable_get('pt_settings'));
+  $custom_endpoint = isset($pt_value['endpoint_path']) && !empty($pt_value['endpoint_path']);
+  $endpoint = $custom_endpoint ? $pt_value['endpoint_path'] : 'endpoint';
+  $token_position = substr_count($endpoint, '/') + 1;
+
+  $items[$endpoint . '/%'] = array(
+    'title' => 'Endpoint',
+    'page callback' => '_init_pt_endpoint',
+    'page arguments' => array($token_position),
+    'access callback' => TRUE,
+  );
+
   return $items;
 }
 

@@ -25,25 +25,63 @@ function publishthis_settings($form, &$form_state) {
     }
   } catch (Exception $ex) {}
 
-  if (isset($pt_value['endpoint']) && !empty($pt_value['endpoint'])) {
-	  $pt_endpoint = $pt_value['endpoint'];
-  }
-  else {
-	  $pt_endpoint = getRandomWord();
-  }
+
   $form['pt_settings']['endpoint'] = array(
+    '#type'        => 'fieldset',
+    '#title'       => t('Endpoint'),
+    '#weight'      => 0,
+    '#tree'        => FALSE,
+    '#collapsible' => TRUE,
+    '#collapsed'   => FALSE,
+    '#attributes'  => array(
+      'class' => array(
+        'container-inline'
+      )
+    ),
+  );
+
+  $pt_endpoint = t('Please set endpoint path and endpoint token.');
+  $pt_endpoint_path = 'endpoint';
+  $pt_endpoint_token = getRandomWord();
+
+  if (isset($pt_value['endpoint'])) {
+    $pt_endpoint = t('Current endpoint: <strong>@endpoint</strong>', array('@endpoint' => $pt_value['endpoint']));
+    $pt_endpoint.= '<br />To change Endpoint URL please set endpoint path and endpoint token.';
+
+    if (!isset($pt_value['endpoint_path'])) {
+      $pt_endpoint_path = substr($pt_value['endpoint'], strlen($base_url) + 1, strlen($base_url) - strrpos($pt_value['endpoint'], '/'));
+    }
+    else {
+      $pt_endpoint_path = $pt_value['endpoint_path'];
+    }
+
+    if (!isset($pt_value['endpoint_token'])) {
+      $pt_endpoint_token = substr($pt_value['endpoint'], strrpos($pt_value['endpoint'], '/') + 1);
+    }
+    else {
+      $pt_endpoint_token = $pt_value['endpoint_token'];
+    }
+  }
+
+  $form['pt_settings']['endpoint']['description'] = array(
+    '#type' => 'markup',
+    '#markup' => '<p>' . $pt_endpoint . '</p>',
+  );
+
+  $form['pt_settings']['endpoint']['endpoint_path'] = array(
 	  '#type'          => 'textfield',
-	  '#default_value' => isset($pt_value['endpoint']) ? $pt_value['endpoint'] : $base_url . '/endpoint/' . $pt_endpoint,
+	  '#default_value' => $pt_endpoint_path,
 	  '#required'      => TRUE,
-	  '#description'   => t(''),
-	  /*'#prefix'        => '<div class="form-item form-type-checkboxes">
-			  <label for="edit-cms-url">CMS URL</label>
-			<div id="edit-cms-url">
-			  <div class="form-item form-type-checkbox">' . $base_url . '/endpoint/' . $pt_endpoint . '
-			  </div>
-			</div>
-		  </div><div id="endpoint_input">',
-	  '#suffix'        => '</div>',*/
+	  '#prefix'        => $base_url . '/ ',
+	  '#size'          => 20,
+  );
+
+  $form['pt_settings']['endpoint']['endpoint_token'] = array(
+    '#type'          => 'textfield',
+    '#prefix'        => '/ ',
+    '#default_value' => $pt_endpoint_token,
+    '#required'      => TRUE,
+    '#size'          => 40,
   );
   $form['pt_settings']['taxonomy'] = array(
 	  '#type'          => 'checkboxes',
@@ -177,6 +215,8 @@ function api_token_validate_callback($form, $form_state) {
  * @desc Valdiate form value
  */
 function publishthis_settings_validate($form, &$form_state) {
+  global $base_url;
+
   if ($form_state['clicked_button']['#value'] == "Save Changes") {
 	  $objAPI = new Publishthis_API();
 	  $token  = $objAPI->validate_token($form_state['values']['api_token']);
@@ -184,6 +224,7 @@ function publishthis_settings_validate($form, &$form_state) {
 	  if ($token['valid'] != 1) {
 	    form_set_error('api_token', $token['message']);
 	  }
+	  $form_state['values']['endpoint'] = $base_url . '/' . $form_state['values']['endpoint_path'] . '/' . $form_state['values']['endpoint_token'];
   }
 }
 
@@ -235,6 +276,8 @@ function publishthis_settings_submit($form, &$form_state) {
 	  $setting_formValue = serialize($form_state['values']);
 	  // Set varaible name, value pair
 	  $pt_settings_value = variable_set('pt_settings', $setting_formValue);
+	  // Rebuild menu
+      menu_rebuild();
 	  drupal_set_message(t('The publishthis settings saved'));
 	  drupal_goto('admin/config/publishthis');
   }
