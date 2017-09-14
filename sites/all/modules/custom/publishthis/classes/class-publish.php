@@ -119,12 +119,24 @@ class Publishthis_Publish {
       if (!empty($post['authors'][0]->id)) {
         $content_features['pta_publish_author'] = $post['authors'][0]->id;
       }
-      // Check if user exists - otherwise apply uid 1
-      $user_name = db_query("SELECT name FROM {users} WHERE uid = :uid;", array(':uid' => $content_features['pta_publish_author']))->fetchField();
-      if (!empty($user_name)){
-        $uid = $content_features['pta_publish_author'];
-        $node->name = $user_name;
+
+      // Handle database exceptions.
+      try {
+        // Check if user exists - otherwise apply uid 1
+        $user_name = db_query("SELECT name FROM {users} WHERE uid = :uid;", array(':uid' => $content_features['pta_publish_author']))->fetchField();
+        if (!empty($user_name)){
+          $uid = $content_features['pta_publish_author'];
+          $node->name = $user_name;
+        }
+      } catch (Exception $ex) {
+        $message = array(
+          'message' => 'Node creation - User',
+          'status' => 'error',
+          'details' => $ex->getMessage()
+        );
+        $this->obj_api->_log_message( $message, "1" );
       }
+
       $node->uid = $uid;
       $node->status = $content_features['pta_content_status'];
       // Handle workbench moderation
@@ -154,16 +166,36 @@ class Publishthis_Publish {
         $curated_content = $arrHTMLItems[0];
       }
 
-      $node->body[$node->language][0]['value'] = _publishthis_replace_unhandled_characters($curated_content);
-      $node->body[$node->language][0]['format'] = 'full_html';
-      $node->body[$node->language][0]['summary'] = $this->_build_node_summary($arrHTMLItems);
+      // Handle exceptions that may occurs during body field processing.
+      try {
+        $node->body[$node->language][0]['value'] = _publishthis_replace_unhandled_characters($curated_content);
+        $node->body[$node->language][0]['format'] = 'full_html';
+        $node->body[$node->language][0]['summary'] = $this->_build_node_summary($arrHTMLItems);
+      } catch (Exception $ex) {
+        $message = array(
+          'message' => 'Node creation - Body',
+          'status' => 'error',
+          'details' => $ex->getMessage()
+        );
+        $this->obj_api->_log_message( $message, "1" );
+      }
 
       $node->title = !empty($post['title']) ? $post['title'] : NODE_NO_TITLE;
 
       // Featured image
       $featured_image = isset($content_features['pta_featured_image']['save_featured_image']) && $content_features['pta_featured_image']['save_featured_image'] === 'save_featured_image' ? true : false;
       if ( $featured_image && !empty($post['featuredDocument']->imageUrl)) {
-        $node->field_image[$node->language][0] = $this->_get_featured_image($post['featuredDocument']->imageUrl, $content_features);
+        // Handle featured image exceptions.
+        try {
+          $node->field_image[$node->language][0] = $this->_get_featured_image($post['featuredDocument']->imageUrl, $content_features);
+        } catch (Exception $ex) {
+          $message = array(
+            'message' => 'Node creation - Featured image',
+            'status' => 'error',
+            'details' => $ex->getMessage()
+          );
+          $this->obj_api->_log_message( $message, "1" );
+        }
       }
       else {
         unset( $node->field_image[$node->language][0] );
@@ -247,7 +279,7 @@ class Publishthis_Publish {
     }
     catch( Exception $ex ) {
       $message = array(
-        'message' => 'Node createion',
+        'message' => 'Node creation',
         'status' => 'error',
         'details' => $ex->getMessage()
       );
